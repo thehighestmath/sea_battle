@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'c:\QT PR\GameWidget\ShipListWidget.ui'
+# Form implementation generated from reading ui file 'c:\Git\sea_battle\src\ViewWidget\ShipListWidget.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #

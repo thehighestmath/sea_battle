@@ -11,15 +11,18 @@ from PyQt5.QtGui import QImage, QPixmap
 from PyQt5 import QtCore, QtGui
 
 # use ui
-from ui_GameWidget import Ui_GameWidget
+from Presenter.ui_GameWidget import Ui_GameWidget
 
 # inner imports
-from ShipListWidget import ShipMimeType
+from Presenter.ShipListWidget import ShipMimeType
+import Environment
 
 DEBUG_RESOURCE = ""
 
 class GameWidget(QWidget):
     def __init__(self, parent = None):
+        
+
         super(GameWidget, self).__init__(parent)
         self.ui = Ui_GameWidget()
         self.ui.setupUi(self)
@@ -40,8 +43,10 @@ class GameWidget(QWidget):
 
 
     def LoadResources(self):
-        if(DEBUG_RESOURCE):
+        if DEBUG_RESOURCE:
             resourcesPath = os.path.join(os.path.dirname(__file__), DEBUG_RESOURCE)
+        else:
+            resourcesPath = Environment.Resources.path("res")
 
         self.waterImage = QImage(os.path.join(resourcesPath, "water.png"))
         self.hitImage = QImage(os.path.join(resourcesPath, "hit.png"))
@@ -166,6 +171,7 @@ class GameWidget(QWidget):
                 event.accept()
             else:
                 event.ignore()
+
 
 
 if __name__ == "__main__":

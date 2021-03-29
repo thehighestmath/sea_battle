@@ -127,3 +127,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+/res
+/src/TestMainWindow.py
+/src/TestMainWindow.ui
+/src/ui_TestMainWindow.py

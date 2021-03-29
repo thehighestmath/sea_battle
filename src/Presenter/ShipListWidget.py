@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QWidget, QGraphicsScene
 from PyQt5.QtCore import Qt, QSize, QVariant
 from PyQt5.QtGui import QImage, QIcon, QPixmap
 
-from ui_ShipListWidget import Ui_ShipListWidget
+from Presenter.ui_ShipListWidget import Ui_ShipListWidget
 
 DEBUG_RESOURCE = ""
 

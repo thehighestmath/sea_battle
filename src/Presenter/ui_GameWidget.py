@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'c:\QT PR\GameWidget\GameWidget.ui'
+# Form implementation generated from reading ui file 'c:\Git\sea_battle\src\ViewWidget\GameWidget.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
