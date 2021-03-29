@@ -1,4 +1,3 @@
-# This Python file uses the following encoding: utf-8
 import logging
 import random
 import sys
@@ -15,30 +14,17 @@ class GameWindow(QtWidgets.QWidget):
         super(GameWindow, self).__init__(parent)
         self.ui = Ui_GameWindow()
         self.ui.setupUi(self)
-        self.setStyleSheet('''#centralWidget{
-        border-image: url(ship.jpg) 0 0 0 0 stretch stretch;
-        }
-        QLabel{
-        color: #FFA500;
-        font-weight: bold;
-        }
-        ''')
 
-        self.ui.actionPreparePlayer_1.triggered.connect(self.prepare_player_1)
-        self.ui.actionPreparePlayer_2.triggered.connect(self.prepare_player_2)
-        self.ui.actionPlayer_1.triggered.connect(self.move_player_1)
-        self.ui.actionPlayer_2.triggered.connect(self.move_player_2)
-
-        self.current_state: States = States.INIT
-        self.current_player: int = -1
+        self.currentState: States = States.INIT
+        self.currentPlayer: int = -1
 
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key.Key_Q:
-            logging.debug(f'State: {self.current_state} | current_player: {self.current_player} | keep_player: False')
-            self.state_machine_next(keep_player=False)
+            logging.debug(f'State: {self.currentState} | currentPlayer: {self.currentPlayer} | keepPlayer: False')
+            self.next(keepPlayer=False)
         if event.key() == QtCore.Qt.Key.Key_W:
-            logging.debug(f'State: {self.current_state} | current_player: {self.current_player} | keep_player: True')
-            self.state_machine_next(keep_player=True)
+            logging.debug(f'State: {self.currentState} | currentPlayer: {self.currentPlayer} | keepPlayer: True')
+            self.next(keepPlayer=True)
         event.accept()
 
     def mousePressEvent(self, event):
@@ -46,99 +32,99 @@ class GameWindow(QtWidgets.QWidget):
         # logging.debug("Game window mouse press")
         super(GameWindow, self).mousePressEvent(event)
 
-    def set_widgets_on_off(self, is_first: bool = True):
-        self.ui.wigdet_player_1.setEnabled(is_first)
-        self.ui.wigdet_player_2.setEnabled(not is_first)
+    def setWidgetsOnOff(self, isFirst: bool = True):
+        self.ui.wigdetPlayer_1.setEnabled(isFirst)
+        self.ui.wigdetPlayer_2.setEnabled(not isFirst)
 
-    def hide_ships(self):
-        self.ui.ships_list_1.hide()
-        self.ui.ships_list_2.hide()
+    def hideShips(self):
+        self.ui.shipsList_1.hide()
+        self.ui.shipsList_2.hide()
 
-    def prepare_player_1(self):
+    def preparePlayer_1(self):
         logger = logging.getLogger(__name__)
         logger.debug('prepare_player_1')
 
-        self.ui.label_player_1.setText('[Prepare player 1]')
-        self.ui.label_player_2.setText('Prepare player 2')
+        self.ui.labelPlayer_1.setText('[Prepare player 1]')
+        self.ui.labelPlayer_2.setText('Prepare player 2')
 
-        self.set_widgets_on_off(is_first=True)
+        self.setWidgetsOnOff(isFirst=True)
 
-    def prepare_player_2(self):
+    def preparePlayer_2(self):
         logger = logging.getLogger(__name__)
         logger.debug('prepare_player_2')
-        self.ui.label_player_1.setText('Prepare player 1')
-        self.ui.label_player_2.setText('[Prepare player 2]')
+        self.ui.labelPlayer_1.setText('Prepare player 1')
+        self.ui.labelPlayer_2.setText('[Prepare player 2]')
 
-        self.set_widgets_on_off(is_first=False)
+        self.setWidgetsOnOff(isFirst=False)
 
-    def move_player_1(self):
+    def movePlayer_1(self):
         logger = logging.getLogger(__name__)
         logger.debug('player_1')
 
-        self.ui.label_player_1.setText('[Player 1]')
-        self.ui.label_player_2.setText('Player 2')
+        self.ui.labelPlayer_1.setText('[Player 1]')
+        self.ui.labelPlayer_2.setText('Player 2')
 
-        self.hide_ships()
+        self.hideShips()
 
-        self.set_widgets_on_off(is_first=True)
-        self.ui.wigdet_player_1.setGraphicsEffect(None)
-        self.ui.wigdet_player_2.setGraphicsEffect(QGraphicsBlurEffect())
+        self.setWidgetsOnOff(isFirst=True)
+        self.ui.wigdetPlayer_1.setGraphicsEffect(None)
+        self.ui.wigdetPlayer_2.setGraphicsEffect(QGraphicsBlurEffect())
 
-    def move_player_2(self):
+    def movePlayer_2(self):
         logger = logging.getLogger(__name__)
         logger.debug('player_2')
 
-        self.ui.label_player_1.setText('Player 1')
-        self.ui.label_player_2.setText('[Player 2]')
+        self.ui.labelPlayer_1.setText('Player 1')
+        self.ui.labelPlayer_2.setText('[Player 2]')
 
-        self.hide_ships()
+        self.hideShips()
 
-        self.set_widgets_on_off(is_first=False)
-        self.ui.wigdet_player_1.setGraphicsEffect(QGraphicsBlurEffect())
-        self.ui.wigdet_player_2.setGraphicsEffect(None)
+        self.setWidgetsOnOff(isFirst=False)
+        self.ui.wigdetPlayer_1.setGraphicsEffect(QGraphicsBlurEffect())
+        self.ui.wigdetPlayer_2.setGraphicsEffect(None)
 
-    def prepare_player(self, player: int):
+    def preparePlayer(self, player: int):
         if player == 1:
-            self.prepare_player_1()
+            self.preparePlayer_1()
         elif player == 2:
-            self.prepare_player_2()
+            self.preparePlayer_2()
         else:
             raise Exception(f'Player {player} does not supported')
 
-    def move_player(self, player: int):
+    def movePlayer(self, player: int):
         if player == 1:
-            self.move_player_1()
+            self.movePlayer_1()
         elif player == 2:
-            self.move_player_2()
+            self.movePlayer_2()
         else:
             raise Exception(f'Player {player} does not supported')
 
-    def state_machine_next(self, keep_player: bool = False):
-        if keep_player and self.current_state in [States.INIT, States.FIRST_PREPARE, States.SECOND_PREPARE]:
-            raise Exception(f'Impossible use [keep_player=True] while state is {self.current_state}')
+    def next(self, keepPlayer: bool = False):
+        if keepPlayer and self.currentState in [States.INIT, States.FIRST_PREPARE, States.SECOND_PREPARE]:
+            raise Exception(f'Impossible use [keep_player=True] while state is {self.currentState}')
 
-        if self.current_state == States.INIT:
-            self.current_state = States.FIRST_PREPARE
-            self.current_player = random.randint(1, 2)
-            self.prepare_player(self.current_player)
+        if self.currentState == States.INIT:
+            self.currentState = States.FIRST_PREPARE
+            self.currentPlayer = random.randint(1, 2)
+            self.preparePlayer(self.currentPlayer)
 
-        elif self.current_state == States.FIRST_PREPARE:
-            self.current_state = States.SECOND_PREPARE
-            self.current_player = 2 if self.current_player == 1 else 1
-            self.prepare_player(self.current_player)
+        elif self.currentState == States.FIRST_PREPARE:
+            self.currentState = States.SECOND_PREPARE
+            self.currentPlayer = 2 if self.currentPlayer == 1 else 1
+            self.preparePlayer(self.currentPlayer)
 
-        elif self.current_state == States.SECOND_PREPARE:
-            self.current_state = States.GAME
-            self.current_player = random.randint(1, 2)
-            self.move_player(self.current_player)
+        elif self.currentState == States.SECOND_PREPARE:
+            self.currentState = States.GAME
+            self.currentPlayer = random.randint(1, 2)
+            self.movePlayer(self.currentPlayer)
 
-        elif self.current_state == States.GAME:
-            if not keep_player:
-                self.current_player = 2 if self.current_player == 1 else 1
-            self.move_player(self.current_player)
+        elif self.currentState == States.GAME:
+            if not keepPlayer:
+                self.currentPlayer = 2 if self.currentPlayer == 1 else 1
+            self.movePlayer(self.currentPlayer)
 
         else:
-            raise Exception(f'Unknown type: {self.current_state}')
+            raise Exception(f'Unknown type: {self.currentState}')
 
 
 if __name__ == '__main__':

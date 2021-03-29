@@ -30,27 +30,13 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
-    <widget class="QMenuBar" name="menubar">
-     <widget class="QMenu" name="menu">
-      <property name="title">
-       <string>Menu</string>
-      </property>
-      <addaction name="actionPreparePlayer_1"/>
-      <addaction name="actionPreparePlayer_2"/>
-      <addaction name="actionPlayer_1"/>
-      <addaction name="actionPlayer_2"/>
-     </widget>
-     <addaction name="menu"/>
-    </widget>
-   </item>
-   <item>
     <widget class="QWidget" name="centralWidget" native="true">
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="0" column="0">
-       <widget class="QWidget" name="wigdet_player_1" native="true">
+       <widget class="QWidget" name="wigdetPlayer_1" native="true">
         <layout class="QVBoxLayout" name="verticalLayout" stretch="0,9,1">
          <item>
-          <widget class="QLabel" name="label_player_1">
+          <widget class="QLabel" name="labelPlayer_1">
            <property name="font">
             <font>
              <pointsize>14</pointsize>
@@ -67,19 +53,19 @@
           </widget>
          </item>
          <item>
-          <widget class="GameWidget" name="game_area_1" native="true"/>
+          <widget class="GameWidget" name="gameArea_1" native="true"/>
          </item>
          <item>
-          <widget class="ShipListWidget" name="ships_list_1" native="true"/>
+          <widget class="ShipListWidget" name="shipsList_1" native="true"/>
          </item>
         </layout>
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QWidget" name="wigdet_player_2" native="true">
+       <widget class="QWidget" name="wigdetPlayer_2" native="true">
         <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,9,1">
          <item>
-          <widget class="QLabel" name="label_player_2">
+          <widget class="QLabel" name="labelPlayer_2">
            <property name="font">
             <font>
              <pointsize>14</pointsize>
@@ -96,10 +82,10 @@
           </widget>
          </item>
          <item>
-          <widget class="GameWidget" name="game_area_2" native="true"/>
+          <widget class="GameWidget" name="gameArea_2" native="true"/>
          </item>
          <item>
-          <widget class="ShipListWidget" name="ships_list_2" native="true"/>
+          <widget class="ShipListWidget" name="shipsList_2" native="true"/>
          </item>
         </layout>
        </widget>
