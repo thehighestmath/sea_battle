@@ -41,4 +41,3 @@ if __name__ == "__main__":
     ResourceDirectory("oioi")
     print("path: ", Resources.path())
     
-

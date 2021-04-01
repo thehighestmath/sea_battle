@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'c:\Git\sea_battle\src\ViewWidget\GameWidget.ui'
+# Form implementation generated from reading ui file 'c:\Git\sea_battle\src\Presenter\GameWidget.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -15,6 +15,7 @@ class Ui_GameWidget(object):
     def setupUi(self, GameWidget):
         GameWidget.setObjectName("GameWidget")
         GameWidget.resize(800, 600)
+        GameWidget.setAcceptDrops(False)
         self.gridLayout = QtWidgets.QGridLayout(GameWidget)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.gridLayout.setSpacing(0)

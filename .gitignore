@@ -132,3 +132,6 @@ dmypy.json
 /src/TestMainWindow.py
 /src/TestMainWindow.ui
 /src/ui_TestMainWindow.py
+
+test*
+Test*
