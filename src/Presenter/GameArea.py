@@ -271,6 +271,7 @@ class GameArea(QWidget):
     def initGhostShip(self, ship, pos):
         self.ghostShip.setPixmap(QPixmap.fromImage(ship.image))
         self.ghostShip.setPos(pos)
+        self.ghostShip.setRotation(0)
             
         width = self.ghostShip.boundingRect().width()
         height = self.ghostShip.boundingRect().height()
@@ -330,6 +331,7 @@ class GameArea(QWidget):
 
             if(shipUnderMouse):
                 self.initGhostShip(shipUnderMouse, event.pos())
+                # self.rotateGhostShip()
                 self.dragShip = True
 
         if event.button() == Qt.MouseButton.RightButton:
