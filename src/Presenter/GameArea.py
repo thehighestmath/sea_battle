@@ -1,4 +1,5 @@
 import sys, os
+import logging
 from enum import Enum
 
 #use PyQt5
@@ -19,6 +20,7 @@ import Environment
 from Presenter.ui_GameArea import Ui_GameArea
 
 DEBUG_RESOURCE = ""
+log = logging.getLogger("GameArea")
 
 
 class ShipListItem():
@@ -34,6 +36,13 @@ class ShipListItem():
         self.counterText    = QGraphicsTextItem()
 
 
+class Ship():
+    def __init__(self, name, length, pos):
+        self.name   = name
+        self.length = length
+        self.pos    = pos
+
+
 class Rotation(Enum):
     RIGHT   = 0
     DOWN    = 1
@@ -47,9 +56,10 @@ class GameArea(QWidget):
     RATIO_WITHOUT_SHIPLIST = 1
     EPS = 0.3
 
+
     #signals
-    #                       pos  len  x    y
-    shipPlaced = pyqtSignal(str, int, int, int)
+    shipPlaced = pyqtSignal(Ship)
+
 
     def __init__(self, parent = None):
         super(GameArea, self).__init__(parent)
@@ -101,17 +111,15 @@ class GameArea(QWidget):
         else:
             resourcesPath = Environment.Resources.path()
 
-
         first = True
-        for key in self.cellImages:
-            image = QImage(os.path.join(resourcesPath, "img", "cells", f"{key}.png"))
+        for imageKey in self.cellImages:
+            image = QImage(os.path.join(resourcesPath, "img", "cells", f"{imageKey}.png"))
             if first:
                 first = False
                 self.originalTileSize = min(image.width(), image.height())
             else:
                 self.originalTileSize = min(self.originalTileSize, image.width(), image.height())
-            self.cellImages[key] = image
-
+            self.cellImages[imageKey] = image
 
         for key, ship in self.shipList.items():
             ship.image = QImage(os.path.join(resourcesPath, "img", "ships", f"{key}.png"))
@@ -255,7 +263,6 @@ class GameArea(QWidget):
             number.setPos(offsetX, (i + 1) * self.tileSize + offsetY)
 
         xPos = 0
-
         for key, ship in self.shipList.items():
             xPos += (ship.length - 1)
             xOffset = xPos * self.tileSize
@@ -318,6 +325,7 @@ class GameArea(QWidget):
 
         self.scene.addItem(self.ghostShip)
         self.ghostShip.setZValue(100)
+
 
     def __rotateGhostShip(self):
         old_rot = self.ghostShip.data(0)
@@ -391,10 +399,12 @@ class GameArea(QWidget):
             shipListItem = self.ghostShip.data(1)
             shipListItem.count -= 1
             shipListItem.counterText.setPlainText(str(shipListItem.count))
-            print(f"map: ({mapX}; {mapY})")
-            print(f"ship: {shipListItem.name}")
-            self.shipPlaced.emit(shipListItem.name, shipListItem.length, mapX, mapY)
-
+            log.debug(f"placed ship({shipListItem.name}) on position ({mapX}; {mapY})")
+            self.shipPlaced.emit(Ship(
+                shipListItem.name,
+                shipListItem.length,
+                QPoint(mapX, mapY)
+            ))
 
 
     def __viewportMousePressEvent(self, event):
@@ -414,7 +424,7 @@ class GameArea(QWidget):
             if self.dragShip:
                 self.__rotateGhostShip()
 
-    
+ 
     def __viewportMouseReleaseEvent(self, event):
         if(event.button() == Qt.MouseButton.LeftButton):
             if self.dragShip:
@@ -442,7 +452,9 @@ class GameArea(QWidget):
 
 
 if __name__ == "__main__":
-    app = QApplication([])
+    logging.basicConfig(level=logging.DEBUG)
+
+    app = QApplication(sys.argv)
     QFontDatabase.addApplicationFont(os.path.join(Environment.Resources.path(), "fonts", "Roboto", "Roboto-Bold.ttf"))
     
     widget = GameArea()
