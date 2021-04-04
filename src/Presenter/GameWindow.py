@@ -3,11 +3,13 @@ import random
 import signal
 import sys
 from enum import Enum
+from typing import Optional
 
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import QGraphicsBlurEffect
 
+from Presenter.GameArea import GameArea
 from Presenter.gamewindow_ui import Ui_GameWindow
 
 
@@ -46,6 +48,8 @@ class GameWindow(QtWidgets.QWidget):
     def hideShipsAndButton(self):
         self.ui.gameArea_1.hideShipList()
         self.ui.gameArea_2.hideShipList()
+        self.ui.gameArea_1.hideShips()
+        self.ui.gameArea_2.hideShips()
         self.ui.buttonWidget.hide()
 
     def preparePlayer(self, player: int):
@@ -80,6 +84,28 @@ class GameWindow(QtWidgets.QWidget):
         self.ui.wigdetPlayer_1.setGraphicsEffect(effectWidget_1)
         self.ui.wigdetPlayer_2.setGraphicsEffect(effectWidget_2)
 
+    def checkCountShips(self, player: int):
+        gameArea: Optional[GameArea] = None
+        if player == 1:
+            gameArea = self.ui.gameArea_1
+
+        elif player == 2:
+            gameArea = self.ui.gameArea_2
+
+        else:
+            raise Exception(f'Player {player} does not supported')
+
+        placedShipsCount = gameArea.placedShipsCount()
+
+        if placedShipsCount != 10:
+            self.ui.statusbar.showMessage(
+                f'Расставляет корабли игрок {self.currentPlayer} | '
+                f'Вы поставили {placedShipsCount} кораблей, осталось {10 - placedShipsCount} кораблей'
+            )
+            return False
+
+        return True
+
     def next(self, keepPlayer: bool = False):
         if keepPlayer and self.currentState in [States.INIT, States.FIRST_PREPARE, States.SECOND_PREPARE]:
             raise Exception(f'Impossible use [keep_player=True] while state is {self.currentState}')
@@ -91,12 +117,16 @@ class GameWindow(QtWidgets.QWidget):
             self.ui.statusbar.showMessage(f'Расставляет корабли игрок {self.currentPlayer}')
 
         elif self.currentState == States.FIRST_PREPARE:
+            if not self.checkCountShips(self.currentPlayer):
+                return
             self.currentState = States.SECOND_PREPARE
             self.currentPlayer = 2 if self.currentPlayer == 1 else 1
             self.preparePlayer(self.currentPlayer)
             self.ui.statusbar.showMessage(f'Расставляет корабли игрок {self.currentPlayer}')
 
         elif self.currentState == States.SECOND_PREPARE:
+            if not self.checkCountShips(self.currentPlayer):
+                return
             self.currentState = States.GAME
             self.currentPlayer = random.randint(1, 2)
             self.movePlayer(self.currentPlayer)
