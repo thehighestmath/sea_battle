@@ -37,10 +37,11 @@ class ShipListItem():
 
 
 class Ship():
-    def __init__(self, name, length, pos):
+    def __init__(self, name, length, pos, vertical):
         self.name   = name
         self.length = length
         self.pos    = pos
+        self.vert   = vertical
 
 
 class Rotation(Enum):
@@ -87,8 +88,8 @@ class GameArea(QWidget):
         self.counterImage = QImage()
 
         # drawing items
+        self.placedShips = []
         self.field       = [QGraphicsPixmapItem() for _ in range(100)]
-        # self.placedShips = [QGraphicsPixmapItem() for _ in range(10) ] TODO
         self.letters     = [QGraphicsTextItem()   for _ in range(10) ]
         self.numbers     = [QGraphicsTextItem()   for _ in range(10) ]
      
@@ -96,7 +97,6 @@ class GameArea(QWidget):
         self.ghostShip = QGraphicsPixmapItem() # data: 0 - rotation; 1 - ShipListItem
         self.placer = QGraphicsRectItem()
         self.dragShip = False
-        self.placedShipsCount = 0
 
         # prepare Qt objects
         self.scene = QGraphicsScene()
@@ -215,6 +215,15 @@ class GameArea(QWidget):
         QApplication.postEvent(self, resize)
 
 
+    def placedShipsCount(self):
+        return self.placedShips.count()
+
+
+    def hideShips(self):
+        for ship in self.placedShips:
+            self.scene.removeItem(ship)
+
+
     def resizeEvent(self, event):
         size = event.size()
         if size == self.adjustedToSize:
@@ -247,7 +256,7 @@ class GameArea(QWidget):
             x = i % 10
             y = i // 10
             cell.setScale(self.scaleFactor)
-            cell.setPos((x+1)*self.tileSize, (y+1)*self.tileSize)
+            cell.setPos((x+1)*self.tileSize, (y + 1) * self.tileSize)
 
         for i in range(10):
             letter = self.letters[i]
@@ -281,6 +290,14 @@ class GameArea(QWidget):
             textY = ship.counterItem.pos().y() + textYOffset
             ship.counterText.setScale(self.scaleFactor)
             ship.counterText.setPos(textX, textY)
+
+        for ship in self.placedShips:
+            mapPos = ship.data(2)
+            ship.setPos(
+                (mapPos.x() + 1) * self.tileSize,
+                (mapPos.y() + 1) * self.tileSize
+            )
+            ship.setScale(self.scaleFactor)
 
         shipListX = self.tileSize
         shipListY = self.tileSize * (11 + self.EPS)
@@ -327,9 +344,12 @@ class GameArea(QWidget):
         self.ghostShip.setZValue(100)
 
 
-    def __rotateGhostShip(self):
-        old_rot = self.ghostShip.data(0)
-        new_rot = Rotation((old_rot.value + 1) % len(Rotation))
+    def __rotateGhostShip(self, rotation = None):
+        if rotation:
+            new_rot = rotation
+        else:
+            old_rot = self.ghostShip.data(0)
+            new_rot = Rotation((old_rot.value + 1) % len(Rotation))
         self.ghostShip.setData(0, new_rot)
         self.ghostShip.setRotation((new_rot.value + 1) * 90)
 
@@ -379,7 +399,11 @@ class GameArea(QWidget):
 
         # second validation - placer does not intersect with other ships
         if isPlacerValid:
-            pass
+            for ship in self.placedShips:
+                shipRect = ship.mapRectToScene(ship.boundingRect())
+                placerRect = self.placer.mapRectToScene(self.placer.boundingRect())
+                isPlacerValid = not placerRect.intersects(shipRect)
+                if not isPlacerValid: break
 
         # set color of placer
         pen = self.placer.pen()
@@ -397,25 +421,68 @@ class GameArea(QWidget):
             sceneX = self.placer.pos().x() + self.tileSize / 2
             sceneY = self.placer.pos().y() + self.tileSize / 2
             mapX, mapY = self.sceneToMap(sceneX, sceneY)
+            rotation = self.ghostShip.data(0)
+            if rotation == Rotation.UP or rotation == Rotation.DOWN:
+                vertical = True
+            else: vertical = False
+
             shipListItem = self.ghostShip.data(1)
             shipListItem.count -= 1
             shipListItem.counterText.setPlainText(str(shipListItem.count))
-            log.debug(f"placed ship({shipListItem.name}) on position ({mapX}; {mapY})")
+                        
+            angle = (rotation.value + 1) * 90
+            pixmap = QPixmap(shipListItem.image).transformed(QTransform().rotate((angle)))
+            placedShip = QGraphicsPixmapItem(pixmap)
+            placedShip.setData(0, self.ghostShip.data(0))
+            placedShip.setData(1, shipListItem)
+            placedShip.setData(2, QPoint(mapX, mapY))  # position in map coordinates
+
+            placedShip.setPos(self.placer.pos())
+            placedShip.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
+            placedShip.setScale(self.scaleFactor)
+
+            self.placedShips.append(placedShip)
+            self.scene.addItem(placedShip)
+
+            log.debug(
+                f"ship \"{shipListItem.name}\"; "
+                f"position ({mapX}, {mapY}); "
+                f"oriented {'vertically' if vertical else 'horizontally'}"
+            )
+
             self.shipPlaced.emit(Ship(
-                shipListItem.name,
-                shipListItem.length,
-                QPoint(mapX, mapY)
+                name=shipListItem.name,
+                length=shipListItem.length,
+                pos=QPoint(mapX, mapY),
+                vertical=vertical
             ))
 
 
     def __viewportMousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            shipUnderMouse = None
-            for _, ship in self.shipList.items():
-                if ship.shipItem.isUnderMouse():
-                    shipUnderMouse = ship
-                    break
+            if self.shipListItem.scene():
+                # check press on shiplist
+                shipUnderMouse = None
+                for _, ship in self.shipList.items():
+                    if ship.shipItem.isUnderMouse():
+                        shipUnderMouse = ship
+                        break
 
+                # check pres on field
+                rotation = Rotation.RIGHT
+                if shipUnderMouse == None:
+                    for ship in self.placedShips:
+                        if ship.isUnderMouse():
+                            rotation = ship.data(0)
+                            shipListItem = ship.data(1)
+                            shipListItem.count += 1
+                            shipListItem.counterText.setPlainText(str(shipListItem.count))
+                            shipUnderMouse = shipListItem
+                            self.placedShips.remove(ship)
+                            self.scene.removeItem(ship)
+                            break
+
+            # if ship grabbed
             if shipUnderMouse and shipUnderMouse.count > 0:
                 self.__initGhostShip(shipUnderMouse, event.pos())
                 self.__rotateGhostShip()
