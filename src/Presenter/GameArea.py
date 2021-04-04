@@ -377,8 +377,10 @@ class GameArea(QWidget):
 
         if rotation.isHorizontal():
             self.placer.setRect(0, 0, maxSide, minSide)
-        else:
+        elif rotation.isVertical():
             self.placer.setRect(0, 0, minSide, maxSide)
+        else:
+            raise Exception("Unknown state! Rotation is not horizontal and not vertical.")  # wtf
         self.__validatePlacer()
 
 
@@ -447,10 +449,12 @@ class GameArea(QWidget):
             sceneY = self.placer.pos().y() + self.tileSize / 2
             mapX, mapY = self.sceneToMap(sceneX, sceneY)
             rotation = self.ghostShip.data(0)
-            if rotation == Rotation.UP or rotation == Rotation.DOWN:
+            if rotation.isVertical():
                 vertical = True
-            else:
+            elif rotation.isHorizontal():
                 vertical = False
+            else:
+                raise Exception("Unknown state! Rotation is not horizontal and not vertical.")  # wtf
 
             shipListItem = self.ghostShip.data(1)
             shipListItem.count -= 1
