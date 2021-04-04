@@ -511,11 +511,11 @@ class GameArea(QWidget):
                             self.__scene.removeItem(ship)
                             break
 
-            # if ship grabbed
-            if shipUnderMouse and shipUnderMouse.count > 0:
-                self.__initGhostShip(shipUnderMouse, event.pos())
-                self.__rotateGhostShip(rotation)
-                self.__dragShip = True
+                # if ship grabbed
+                if shipUnderMouse and shipUnderMouse.count > 0:
+                    self.__initGhostShip(shipUnderMouse, event.pos())
+                    self.__rotateGhostShip(rotation)
+                    self.__dragShip = True
 
         if event.button() == Qt.MouseButton.RightButton:
             if self.__dragShip:
