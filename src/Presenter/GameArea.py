@@ -112,17 +112,17 @@ class GameArea(QWidget):
             resourcesPath = Environment.Resources.path()
 
         first = True
-        for imageKey in self.cellImages:
-            image = QImage(os.path.join(resourcesPath, "img", "cells", f"{imageKey}.png"))
+        for imageName in self.cellImages:
+            image = QImage(os.path.join(resourcesPath, "img", "cells", f"{imageName}.png"))
             if first:
                 first = False
                 self.originalTileSize = min(image.width(), image.height())
             else:
                 self.originalTileSize = min(self.originalTileSize, image.width(), image.height())
-            self.cellImages[imageKey] = image
+            self.cellImages[imageName] = image
 
-        for key, ship in self.shipList.items():
-            ship.image = QImage(os.path.join(resourcesPath, "img", "ships", f"{key}.png"))
+        for shipName, ship in self.shipList.items():
+            ship.image = QImage(os.path.join(resourcesPath, "img", "ships", f"{shipName}.png"))
 
         self.shipListImage = QImage(os.path.join(
             resourcesPath,
@@ -175,7 +175,7 @@ class GameArea(QWidget):
         self.scene.addItem(self.shipListItem)
 
         font.setPixelSize(int(self.originalTileSize * 0.3))
-        for key, ship in self.shipList.items():
+        for _, ship in self.shipList.items():
             t = QTransform().rotate(90)
             ship.shipItem.setPixmap(QPixmap.fromImage(ship.image).transformed(t))
             ship.shipItem.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
@@ -415,9 +415,9 @@ class GameArea(QWidget):
                     shipUnderMouse = ship
                     break
 
-            if(shipUnderMouse and shipUnderMouse.count > 0):
+            if shipUnderMouse and shipUnderMouse.count > 0:
                 self.__initGhostShip(shipUnderMouse, event.pos())
-                # self.rotateGhostShip()
+                self.__rotateGhostShip()
                 self.dragShip = True
 
         if event.button() == Qt.MouseButton.RightButton:
@@ -426,7 +426,7 @@ class GameArea(QWidget):
 
  
     def __viewportMouseReleaseEvent(self, event):
-        if(event.button() == Qt.MouseButton.LeftButton):
+        if event.button() == Qt.MouseButton.LeftButton:
             if self.dragShip:
                 self.scene.removeItem(self.ghostShip)
                 self.dragShip = False
@@ -460,5 +460,4 @@ if __name__ == "__main__":
     widget = GameArea()
     widget.show()
 
-    # widget.hideShipList()
     sys.exit(app.exec_())
