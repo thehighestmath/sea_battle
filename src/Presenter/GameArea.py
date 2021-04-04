@@ -422,7 +422,7 @@ class GameArea(QWidget):
             sceneY = self.placer.pos().y() + self.tileSize / 2
             mapX, mapY = self.sceneToMap(sceneX, sceneY)
             rotation = self.ghostShip.data(0)
-            if rotation == Rotation.RIGHT or rotation == Rotation.LEFT:
+            if rotation == Rotation.UP or rotation == Rotation.DOWN:
                 vertical = True
             else: vertical = False
 
@@ -443,6 +443,12 @@ class GameArea(QWidget):
 
             self.placedShips.append(placedShip)
             self.scene.addItem(placedShip)
+
+            log.debug(
+                f"ship \"{shipListItem.name}\"; "
+                f"position ({mapX}, {mapY}); "
+                f"oriented {'vertically' if vertical else 'horizontally'}"
+            )
 
             self.shipPlaced.emit(Ship(
                 name=shipListItem.name,
