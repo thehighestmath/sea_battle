@@ -38,17 +38,39 @@ class ShipListItem():
 
 class Ship():
     def __init__(self, name, length, pos, vertical):
-        self.name   = name
-        self.length = length
-        self.pos    = pos
-        self.vert   = vertical
+        self.name     = name
+        self.length   = length
+        self.pos      = pos
+        self.vertical = vertical
 
 
 class Rotation(Enum):
-    RIGHT   = 0
-    DOWN    = 1
-    LEFT    = 2
-    UP      = 3
+    RIGHT   = 90
+    DOWN    = 180
+    LEFT    = 270
+    UP      = 0
+
+
+    def next(self):
+        value = self.value + 90
+        if value > 270:
+            value = 0
+        return Rotation(value)
+
+
+    def prev(self):
+        value = self.value - 90
+        if value < 0:
+            value = 270
+        return Rotation[self]
+
+
+    def isVertical(self):
+        return self == Rotation.UP or self == Rotation.DOWN
+
+    
+    def isHorizontal(self):
+        return self == Rotation.LEFT or self == Rotation.RIGHT
 
 
 class GameArea(QWidget):
@@ -216,7 +238,7 @@ class GameArea(QWidget):
 
 
     def placedShipsCount(self):
-        return self.placedShips.count()
+        return len(self.placedShips)
 
 
     def hideShips(self):
@@ -256,7 +278,7 @@ class GameArea(QWidget):
             x = i % 10
             y = i // 10
             cell.setScale(self.scaleFactor)
-            cell.setPos((x+1)*self.tileSize, (y + 1) * self.tileSize)
+            cell.setPos((x + 1) * self.tileSize, (y + 1) * self.tileSize)
 
         for i in range(10):
             letter = self.letters[i]
@@ -344,17 +366,19 @@ class GameArea(QWidget):
         self.ghostShip.setZValue(100)
 
 
-    def __rotateGhostShip(self, rotation = None):
-        if rotation:
-            new_rot = rotation
-        else:
-            old_rot = self.ghostShip.data(0)
-            new_rot = Rotation((old_rot.value + 1) % len(Rotation))
-        self.ghostShip.setData(0, new_rot)
-        self.ghostShip.setRotation((new_rot.value + 1) * 90)
+    def __rotateGhostShip(self, rotation=None):
+        rotation = rotation if rotation else self.ghostShip.data(0).next()
+        self.ghostShip.setData(0, rotation)
+        self.ghostShip.setRotation(rotation.value)
 
         placerRect = self.placer.rect()
-        self.placer.setRect(0, 0, placerRect.height(), placerRect.width())
+        maxSide = max(placerRect.width(), placerRect.height())
+        minSide = min(placerRect.width(), placerRect.height())
+
+        if rotation.isHorizontal():
+            self.placer.setRect(0, 0, maxSide, minSide)
+        else:
+            self.placer.setRect(0, 0, minSide, maxSide)
         self.__validatePlacer()
 
 
@@ -403,7 +427,8 @@ class GameArea(QWidget):
                 shipRect = ship.mapRectToScene(ship.boundingRect())
                 placerRect = self.placer.mapRectToScene(self.placer.boundingRect())
                 isPlacerValid = not placerRect.intersects(shipRect)
-                if not isPlacerValid: break
+                if not isPlacerValid:
+                    break
 
         # set color of placer
         pen = self.placer.pen()
@@ -424,14 +449,14 @@ class GameArea(QWidget):
             rotation = self.ghostShip.data(0)
             if rotation == Rotation.UP or rotation == Rotation.DOWN:
                 vertical = True
-            else: vertical = False
+            else:
+                vertical = False
 
             shipListItem = self.ghostShip.data(1)
             shipListItem.count -= 1
             shipListItem.counterText.setPlainText(str(shipListItem.count))
-                        
-            angle = (rotation.value + 1) * 90
-            pixmap = QPixmap(shipListItem.image).transformed(QTransform().rotate((angle)))
+
+            pixmap = QPixmap(shipListItem.image).transformed(QTransform().rotate((rotation.value)))
             placedShip = QGraphicsPixmapItem(pixmap)
             placedShip.setData(0, self.ghostShip.data(0))
             placedShip.setData(1, shipListItem)
@@ -485,7 +510,7 @@ class GameArea(QWidget):
             # if ship grabbed
             if shipUnderMouse and shipUnderMouse.count > 0:
                 self.__initGhostShip(shipUnderMouse, event.pos())
-                self.__rotateGhostShip()
+                self.__rotateGhostShip(rotation)
                 self.dragShip = True
 
         if event.button() == Qt.MouseButton.RightButton:
