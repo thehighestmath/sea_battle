@@ -229,7 +229,7 @@ class GameArea(QWidget):
     def hideShipList(self):
         self.ratio = self.RATIO_WITHOUT_SHIPLIST
         self.scene.removeItem(self.shipListItem)
-        for _, ship in self.ships.items():
+        for _, ship in self.shipList.items():
             self.scene.removeItem(ship.shipItem)
 
         self.adjustedToSize = None
