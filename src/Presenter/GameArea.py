@@ -207,7 +207,7 @@ class GameArea(QWidget):
     def hideShipList(self):
         self.ratio = self.RATIO_WITHOUT_SHIPLIST
         self.scene.removeItem(self.shipListItem)
-        for key, ship in self.ships.items():
+        for _, ship in self.ships.items():
             self.scene.removeItem(ship.shipItem)
 
         self.adjustedToSize = None
@@ -263,7 +263,7 @@ class GameArea(QWidget):
             number.setPos(offsetX, (i + 1) * self.tileSize + offsetY)
 
         xPos = 0
-        for key, ship in self.shipList.items():
+        for _, ship in self.shipList.items():
             xPos += (ship.length - 1)
             xOffset = xPos * self.tileSize
             
@@ -361,7 +361,8 @@ class GameArea(QWidget):
         permittedArea = QRectF(self.ui.graphicsView.viewport().geometry())
         permittedArea.setTopLeft(QPointF(self.tileSize, self.tileSize))
         permittedArea.setBottomRight(QPointF(self.tileSize * 12, self.tileSize * 12))
-        placerRect = QRectF(sceneX, sceneY, self.placer.boundingRect().width(), self.placer.boundingRect().height())
+        placerSize = self.placer.boundingRect()
+        placerRect = QRectF(sceneX, sceneY, placerSize.width(), placerSize.height())
 
         isPlacerValid = False
         # first validation - ship can be placed inside game field
@@ -410,7 +411,7 @@ class GameArea(QWidget):
     def __viewportMousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             shipUnderMouse = None
-            for key, ship in self.shipList.items():
+            for _, ship in self.shipList.items():
                 if ship.shipItem.isUnderMouse():
                     shipUnderMouse = ship
                     break
