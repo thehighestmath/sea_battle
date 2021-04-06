@@ -1,10 +1,9 @@
-import sys
-
 from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QWidget, QStackedWidget, QAction
+from PyQt5.QtWidgets import QMainWindow, QPushButton, QWidget, QStackedWidget, QAction
 
 # for example
 from PyQt5.QtWidgets import QFormLayout, QLineEdit, QHBoxLayout, QRadioButton, QLabel
+from Presenter.GameWindow import GameWindow
 
 
 class MainWindow(QMainWindow):
@@ -12,12 +11,13 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
 
+        #pug
         self.menu = QWidget()
-        self.gameWindow = QWidget()
+        self.gameWindow = GameWindow()
         self.currentWidget = 0
 
         self.stack1UI()
-        self.stack2UI()
+        # self.stack2UI()
 
         self.Stack = QStackedWidget(self)
         self.Stack.addWidget(self.menu)
@@ -42,7 +42,7 @@ class MainWindow(QMainWindow):
         self.toolbar.addAction(self.gameButton)
         self.toolbar.setMovable(False)
 
-        self.setGeometry(300, 300, 350, 250)
+        self.setGeometry(0, 0, 800, 600)
         self.setWindowTitle('Морской бой')
         self.show()
 
@@ -66,7 +66,7 @@ class MainWindow(QMainWindow):
     # this for example
     def stack1UI(self):
         layout = QFormLayout()
-        layout.addRow("COOL GAME", QLineEdit("yea"))
+        layout.addRow("PUG", QLineEdit("yea"))
         self.menu.setLayout(layout)
 
     def stack2UI(self):
@@ -76,9 +76,3 @@ class MainWindow(QMainWindow):
         result.addWidget(QRadioButton("Lose"))
         layout.addRow(QLabel("?"), result)
         self.gameWindow.setLayout(layout)
-
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = MainWindow()
-    sys.exit(app.exec_())
