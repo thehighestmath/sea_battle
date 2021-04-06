@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QFontDatabase
 
 from PyQt5.QtWidgets import QWidget, QGraphicsScene, QGraphicsItem, QSizePolicy
-from PyQt5.QtWidgets import QGraphicsPixmapItem, QGraphicsTextItem, QGraphicsRectItem
+from PyQt5.QtWidgets import QGraphicsPixmapItem, QGraphicsTextItem, QGraphicsRectItem, QGraphicsBlurEffect
 
 from PyQt5.QtGui import QImage, QFont, QPixmap, QTransform, QPainter, QResizeEvent, QPen
 from PyQt5.QtCore import Qt, QSize, QMargins, QEvent, QRectF, QPoint, QPointF
@@ -202,6 +202,7 @@ class GameArea(QWidget):
             ship.shipItem.setPixmap(QPixmap.fromImage(ship.image).transformed(t))
             ship.shipItem.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
             ship.counterItem.setPixmap(QPixmap.fromImage(self.__counterImage))
+            ship.counterItem.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
             ship.counterText.setPlainText(str(ship.count))
             ship.counterText.setFont(font)
             self.__scene.addItem(ship.shipItem)
@@ -460,6 +461,12 @@ class GameArea(QWidget):
             shipListItem.count -= 1
             shipListItem.counterText.setPlainText(str(shipListItem.count))
 
+            effect = QGraphicsBlurEffect()
+            effect.setBlurHints(QGraphicsBlurEffect.BlurHint.QualityHint)
+            effect.setBlurRadius(3)
+            if shipListItem.count == 0:
+                shipListItem.shipItem.setGraphicsEffect(effect)
+
             pixmap = QPixmap(shipListItem.image).transformed(QTransform().rotate((rotation.value)))
             placedShip = QGraphicsPixmapItem(pixmap)
             placedShip.setData(0, self.__ghostShip.data(0))
@@ -504,6 +511,10 @@ class GameArea(QWidget):
                         if ship.isUnderMouse():
                             rotation = ship.data(0)
                             shipListItem = ship.data(1)
+
+                            if shipListItem.count == 0:
+                                shipListItem.shipItem.setGraphicsEffect(None)
+
                             shipListItem.count += 1
                             shipListItem.counterText.setPlainText(str(shipListItem.count))
                             shipUnderMouse = shipListItem
