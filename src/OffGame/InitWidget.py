@@ -1,8 +1,15 @@
 import sys
 from PyQt5 import QtWidgets
-import InitWindow
+from UI_InitWidget import Ui_InitWidget
+from PyQt5.QtCore import pyqtSignal
 
-class InitWindow(QtWidgets.QMainWindow, InitWindow.Ui_InitWindow):
+
+class InitWidget(QtWidgets.QWidget, Ui_InitWidget):
+
+    PvAISignal = pyqtSignal()
+    PvPSignal = pyqtSignal()
+    showHSTSignal = pyqtSignal()
+
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -11,17 +18,16 @@ class InitWindow(QtWidgets.QMainWindow, InitWindow.Ui_InitWindow):
         self.hst.clicked.connect(self.showHST)
 
     def PvsAI(self):
-        print("PVSAI")
+        self.PvAISignal.emit()
 
     def PvsP(self):
-        print("PVSP")
+        self.PvPSignal.emit()
 
     def showHST(self):
-        print("showHST")
+        self.showHSTSignal.emit()
 
 if __name__ == '__main__':
-    print("Sea Battle!")
     app = QtWidgets.QApplication(sys.argv)
-    init = InitWindow()
+    init = InitWidget()
     init.show()
     app.exec_()
