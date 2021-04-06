@@ -1,9 +1,15 @@
+from enum import Enum
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QWidget, QStackedWidget, QAction
 
 # for example
 from PyQt5.QtWidgets import QFormLayout, QLineEdit, QHBoxLayout, QRadioButton, QLabel
 from Presenter.GameWindow import GameWindow
+
+
+class DisplayedWidget(Enum):
+    MENU = 0
+    GAME = 1
 
 
 class MainWindow(QMainWindow):
@@ -14,7 +20,7 @@ class MainWindow(QMainWindow):
         #pug
         self.menu = QWidget()
         self.gameWindow = GameWindow()
-        self.currentWidget = 0
+        self.currentWidget = DisplayedWidget.MENU
 
         self.stack1UI()
         # self.stack2UI()
@@ -48,14 +54,14 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot()
     def goToMenu(self):
-        self.currentWidget = 0
+        self.currentWidget = DisplayedWidget.MENU
         self.menuButton.setVisible(False)
         self.gameButton.setVisible(True)
         self.display()
 
     @pyqtSlot()
     def goToGameWindow(self):
-        self.currentWidget = 1
+        self.currentWidget = DisplayedWidget.GAME
         self.gameButton.setVisible(False)
         self.menuButton.setVisible(True)
         self.display()
