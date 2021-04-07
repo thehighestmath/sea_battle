@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import IntEnum
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QWidget, QStackedWidget, QAction
 
@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QFormLayout, QLineEdit, QHBoxLayout, QRadioButton, Q
 from Presenter.GameWindow import GameWindow
 
 
-class DisplayedWidget(Enum):
+class DisplayedWidget(IntEnum):
     MENU = 0
     GAME = 1
 
