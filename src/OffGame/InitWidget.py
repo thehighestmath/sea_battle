@@ -1,6 +1,6 @@
 import sys
 from PyQt5 import QtWidgets
-from UI_InitWidget import Ui_InitWidget
+from OffGame.UI_InitWidget import Ui_InitWidget
 from PyQt5.QtCore import pyqtSignal
 
 
