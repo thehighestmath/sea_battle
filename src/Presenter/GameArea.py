@@ -15,6 +15,7 @@ from PyQt5.QtCore import pyqtSignal
 
 # inner project imports
 import Environment
+from Model.Controller import Controller
 
 # ui
 from Presenter.ui_GameArea import Ui_GameArea
@@ -82,14 +83,18 @@ class GameArea(QWidget):
     #signals
     shipPlaced = pyqtSignal(Ship)
 
-
     def __init__(self, parent = None):
         super(GameArea, self).__init__(parent)
+        # super().__init__(self, parent)
         self.__ui = Ui_GameArea()
         self.__ui.setupUi(self)
 
         self.__ratio = self.RATIO_WITH_SHIPLIST
         self.__scaleFactor = 1
+
+        self.controller = Controller()
+        self.controller._accept = self.__accept()
+        self.controller._decline = self.__decline()
 
         self.__shipList = {
             "boat":         ShipListItem(length=1, name="boat",       count=4),
@@ -497,7 +502,7 @@ class GameArea(QWidget):
                         shipUnderMouse = ship
                         break
 
-                # check pres on field
+                # check press on field
                 rotation = Rotation.RIGHT
                 if shipUnderMouse == None:
                     for ship in self.__placedShips:
@@ -516,6 +521,10 @@ class GameArea(QWidget):
                     self.__initGhostShip(shipUnderMouse, event.pos())
                     self.__rotateGhostShip(rotation)
                     self.__dragShip = True
+
+            x, y = self.sceneToMap(event.pos().x(), event.pos().y())
+            if(x >= 0 and x < 10 and y >= 0 and y < 10):
+                self.controller.emitHit(x, y)
 
         if event.button() == Qt.MouseButton.RightButton:
             if self.__dragShip:
@@ -546,6 +555,15 @@ class GameArea(QWidget):
                 self.__dragShip = False
 
             self.__validatePlacer()
+
+    
+    def __accept(x, y):
+        log.debug(f"accepted hit on point ({x}, {y})")
+
+
+    def __decline(x, y):
+        log.debug(f"declined hit on point ({x}, {y})")
+
 
 
 if __name__ == "__main__":
