@@ -93,8 +93,8 @@ class GameArea(QWidget):
         self.__scaleFactor = 1
 
         self.controller = Controller()
-        self.controller._accept = self.__accept()
-        self.controller._decline = self.__decline()
+        self.controller._accept = self.__accept
+        self.controller._decline = self.__decline
 
         self.__shipList = {
             "boat":         ShipListItem(length=1, name="boat",       count=4),

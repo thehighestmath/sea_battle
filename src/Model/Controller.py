@@ -6,7 +6,7 @@ from PyQt5.QtCore import pyqtSignal
 log = logging.getLogger("GameArea")
 
 class Controller(QObject):
-    hit = pyqtSignal(Controller, int, int)
+    hit = pyqtSignal(QObject, int, int)
     
     def __init__(self):
         super(Controller, self).__init__()
@@ -16,6 +16,7 @@ class Controller(QObject):
         log.debug(f"emit hit on ({x}, {y})")
         self.__lastHit.append((x, y))
         self.hit.emit(self, x, y)
+        print(self.__lastHit)
 
     def _accept(self):
         raise NotImplementedError()
