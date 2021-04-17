@@ -9,6 +9,7 @@ from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import QGraphicsBlurEffect
 
+from Model.GameModel import GameModel
 from Presenter.GameArea import GameArea
 from Presenter.gamewindow_ui import Ui_GameWindow
 
@@ -28,9 +29,26 @@ class GameWindow(QtWidgets.QWidget):
         # self.ui.gameArea_1.shipPlaced.connect(self.foo)
         # self.ui.gameArea_2.shipPlaced.connect(self.foo)
         self.ui.finishSettingShips.clicked.connect(self.next)
+        self.ui.shuffleShips.clicked.connect(self.shuffleShips)
         self.currentState: States = States.INIT
         self.currentPlayer: int = -1
         self.next()
+        self.model_1: Optional[GameModel] = None
+        self.model_2: Optional[GameModel] = None
+
+    def shuffleShips(self):
+        gameArea: Optional[GameArea] = None
+        if self.currentPlayer == 1:
+            gameArea = self.ui.gameArea_1
+
+        elif self.currentPlayer == 2:
+            gameArea = self.ui.gameArea_2
+
+        else:
+            raise Exception(f'Player {player} does not supported')
+
+        # TODO
+        gameArea.shuffleShips()
 
     def foo(self, val):
         print(val)
@@ -86,10 +104,13 @@ class GameWindow(QtWidgets.QWidget):
 
     def checkCountShips(self, player: int):
         gameArea: Optional[GameArea] = None
+        model: Optional[GameModel] = None
         if player == 1:
+            model = self.model_1
             gameArea = self.ui.gameArea_1
 
         elif player == 2:
+            model = self.model_2
             gameArea = self.ui.gameArea_2
 
         else:
@@ -103,7 +124,8 @@ class GameWindow(QtWidgets.QWidget):
                 f'Вы поставили {placedShipsCount} кораблей, осталось {10 - placedShipsCount} кораблей'
             )
             return False
-
+        # TODO
+        model = GameModel(gameArea.getPlacedShips())
         return True
 
     def next(self, keepPlayer: bool = False):

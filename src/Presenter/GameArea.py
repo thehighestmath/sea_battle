@@ -132,7 +132,7 @@ class GameArea(QWidget):
         self.__initGraphicsView()
         self.__adjustedToSize = 0
 
-        self.shuffleShips()
+        # self.shuffleShips()
 
 
     def __loadResources(self):
@@ -243,6 +243,10 @@ class GameArea(QWidget):
         self.__adjustedToSize = None
         resize = QResizeEvent(self.size(), self.size())
         QApplication.postEvent(self, resize)
+
+
+    def getPlacedShips(self):
+        return self.__placedShips
 
 
     def placedShipsCount(self):
@@ -445,13 +449,13 @@ class GameArea(QWidget):
         pos = self.__ghostShip.pos()
         x = pos.x()
         y = pos.y()
-        rot = self.__ghostShip.data(0)
+        rot: Rotation = self.__ghostShip.data(0)
         length = self.__ghostShip.data(1).length
-        if rot == Rotation.LEFT or rot == Rotation.RIGHT:
+        if rot.isHorizontal():
             x -= self.tileSize * length / 2
             return x, y
 
-        if rot == Rotation.UP or rot == Rotation.DOWN:
+        if rot.isVertical():
             y -= self.tileSize * length / 2
             return x, y
 
