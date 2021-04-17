@@ -2,7 +2,7 @@ import copy
 import logging
 import unittest
 from enum import IntEnum
-from typing import List
+from typing import List, Optional
 
 from PyQt5.QtCore import QPoint, QObject, pyqtSignal
 from PyQt5.QtWidgets import QGraphicsPixmapItem
@@ -17,6 +17,9 @@ class State(IntEnum):
     KILLED = 3
     MISS = 4
 
+    def isEndCell(self):
+        return self in [State.FREE, State.MISS]
+
     def __repr__(self):
         return str(self.value)
 
@@ -24,7 +27,7 @@ class State(IntEnum):
 class GameModel(QObject):
     shipKilled = pyqtSignal(Ship)
 
-    def __init__(self, listOfShips=None):
+    def __init__(self, listOfShips: Optional[List[QGraphicsPixmapItem]] = None):
         super(GameModel, self).__init__()
         if listOfShips is None:
             listOfShips = []
@@ -47,18 +50,21 @@ class GameModel(QObject):
     def getMatrix(self):
         return copy.deepcopy(self.__matrix)
 
-    def setMatrix(self, matrix):
-        self.__matrix = copy.deepcopy(matrix)
+    def setMatrix(self, matrix: List[List[int]]):
+        # for unittest
+        for i in range(10):
+            for j in range(10):
+                self.__matrix[i][j] = State(matrix[i][j])
 
-    def getCell(self, x, y):
+    def getCell(self, x: int, y: int):
         logger = logging.getLogger(__name__)
         if not (0 <= x < 10 and 0 <= y < 10):
             logger.warning('Coords of get must be in range [0, 10)')
-            # TODO
+            # thing about it
             return State.FREE
         return self.__matrix[y][x]
 
-    def setCell(self, x, y, state):
+    def setCell(self, x: int, y: int, state: State):
         logger = logging.getLogger(__name__)
         if not (0 <= x < 10 and 0 <= y < 10):
             logger.warning('Coords of set must be in range [0, 10)')
@@ -88,12 +94,11 @@ class GameModel(QObject):
 
             killed = False
             vertical = False
-
             if (
-                    self.getCell(x, y + 1) == State.FREE and
-                    self.getCell(x, y - 1) == State.FREE and
-                    self.getCell(x - 1, y) == State.FREE and
-                    self.getCell(x + 1, y) == State.FREE
+                    self.getCell(x, y + 1).isEndCell() and
+                    self.getCell(x, y - 1).isEndCell() and
+                    self.getCell(x - 1, y).isEndCell() and
+                    self.getCell(x + 1, y).isEndCell()
             ):
                 length = 1
                 killed = True
@@ -102,13 +107,13 @@ class GameModel(QObject):
                 tempKilled = True
                 length = 1
                 a = self.check(x, y, isAdd=True, isRow=True)
-                if a > 0:
+                if a > -1:
                     tempKilled &= True
                     length += a
                 else:
                     tempKilled &= False
                 a = self.check(x, y, isAdd=False, isRow=True)
-                if a > 0:
+                if a > -1:
                     tempKilled &= True
                     length += a
                 else:
@@ -121,13 +126,13 @@ class GameModel(QObject):
                     vertical = True
                     length = 1
                     a = self.check(x, y, isAdd=True, isRow=False)
-                    if a > 0:
+                    if a > -1:
                         tempKilled &= True
                         length += a
                     else:
                         tempKilled &= False
                     a = self.check(x, y, isAdd=False, isRow=False)
-                    if a > 0:
+                    if a > -1:
                         tempKilled &= True
                         length += a
                     else:
@@ -145,7 +150,7 @@ class GameModel(QObject):
         else:
             raise Exception(f'Unknown state: {self.getCell(x, y)}')
 
-    def hitAroundCells(self, pos, length, vertical):
+    def hitAroundCells(self, pos: QPoint, length: int, vertical: bool):
         if vertical:
             for i in range(pos.x() - 1, pos.x() + 2):
                 for j in range(pos.y() - 1, pos.y() + length + 1):
@@ -159,20 +164,20 @@ class GameModel(QObject):
             for i in range(pos.x(), pos.x() + length):
                 self.setCell(i, pos.y(), State.KILLED)
 
-    def findLeftShipCorner(self, x, y, isVertical):
+    def findLeftShipCorner(self, x: int, y: int, isVertical: bool):
         if isVertical:
             for i in range(1, 4):
                 cell = self.getCell(x, y - i)
-                if cell == State.FREE:
+                if cell.isEndCell():
                     return QPoint(x, y - i + 1)
         else:
             for i in range(1, 4):
                 cell = self.getCell(x - i, y)
-                if cell == State.FREE:
+                if cell.isEndCell():
                     return QPoint(x - i + 1, y)
         raise Exception('Unexpected behaviour')
 
-    def check(self, x, y, isAdd, isRow):
+    def check(self, x: int, y: int, isAdd: bool, isRow: bool):
         length = 0
         for i in range(1, 4):
             if isAdd:
@@ -186,10 +191,10 @@ class GameModel(QObject):
                 else:
                     cell = self.getCell(x, y - i)
 
-            if cell == State.FREE:
+            if cell.isEndCell():
                 return length
             if cell == State.OCCUPIED:
-                return 0
+                return -1
             if cell == State.HIT:
                 length += 1
 
@@ -209,6 +214,27 @@ class TestModel(unittest.TestCase):
         [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
         [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     ]
+
+    def testKillLongShip(self):
+        model = GameModel()
+        model.setMatrix(TestModel.initField)
+        model.hit(3, 2)
+        model.hit(1, 2)
+        model.hit(0, 2)
+        model.hit(2, 2)
+        self.assertEqual(
+            model.getMatrix(),
+            [[1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+             [4, 4, 4, 4, 4, 1, 0, 1, 0, 1],
+             [4, 3, 3, 3, 4, 1, 0, 1, 0, 0],
+             [4, 4, 4, 4, 4, 1, 0, 0, 0, 0],
+             [0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
+             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 1, 0, 0, 1, 1, 0, 0],
+             [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+        )
 
     def testKeepPlayer(self):
         model = GameModel()
@@ -285,6 +311,7 @@ class TestModel(unittest.TestCase):
     def testHitInside(self):
         model = GameModel()
         model.setMatrix(TestModel.initField)
+        model.hit(0, 7)
         model.hit(1, 7)
         self.assertEqual(
             model.getMatrix(),
