@@ -20,10 +20,10 @@ class Controller(QObject):
         self.hit.emit(self, x, y)
         print(self.__lastHit)
 
-    def _accept(self):
+    def _accept(self, x, y):
         raise NotImplementedError()
 
-    def _decline(self):
+    def _decline(self, x, y):
         raise NotImplementedError()
 
     def accept(self):

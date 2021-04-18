@@ -1,8 +1,10 @@
 import copy
+import json
 import logging
+import pprint
 import unittest
 from enum import IntEnum
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from PyQt5.QtCore import QPoint, QObject, pyqtSignal
 from PyQt5.QtWidgets import QGraphicsPixmapItem
@@ -20,6 +22,9 @@ class State(IntEnum):
     def isEndCell(self):
         return self in [State.FREE, State.MISS]
 
+    def __str__(self):
+        return str(self.value)
+
     def __repr__(self):
         return str(self.value)
 
@@ -27,10 +32,11 @@ class State(IntEnum):
 class GameModel(QObject):
     shipKilled = pyqtSignal(Ship)
 
-    def __init__(self, listOfShips: Optional[List[QGraphicsPixmapItem]] = None):
+    def __init__(self, player: int = -1, listOfShips: Optional[List[QGraphicsPixmapItem]] = None):
         super(GameModel, self).__init__()
         if listOfShips is None:
             listOfShips = []
+        self.player = player
         self.listOfShips: List[QGraphicsPixmapItem] = listOfShips
         self.__matrix = [[State.FREE for _ in range(10)] for __ in range(10)]
 
@@ -38,14 +44,17 @@ class GameModel(QObject):
             r: Rotation = ship.data(0)
             shipItem: ShipListItem = ship.data(1)
             leftCorner: QPoint = ship.data(2)
-
             for i in range(shipItem.length):
                 if r.isVertical():
-                    self.setCell(leftCorner.x(), leftCorner.y() + 1, State.OCCUPIED)
+                    self.setCell(leftCorner.x(), leftCorner.y() + i, State.OCCUPIED)
                 elif r.isHorizontal():
-                    self.setCell(leftCorner.x() + 1, leftCorner.y(), State.OCCUPIED)
+                    self.setCell(leftCorner.x() + i, leftCorner.y(), State.OCCUPIED)
                 else:
                     raise Exception('Unknown rotation')
+
+    def dumpMatrix(self):
+        with open(f'player_{self.player}.log', 'w') as fp:
+            pprint.pprint(self.__matrix, fp)
 
     def getMatrix(self):
         return copy.deepcopy(self.__matrix)
@@ -70,8 +79,9 @@ class GameModel(QObject):
             logger.warning('Coords of set must be in range [0, 10)')
             return None
         self.__matrix[y][x] = state
+        self.dumpMatrix()
 
-    def hit(self, x: int, y: int) -> bool:
+    def hit(self, x: int, y: int) -> Tuple[bool, State]:
         """
         :param x: coord x
         :param y: coord y
@@ -81,12 +91,12 @@ class GameModel(QObject):
 
         if self.getCell(x, y) in [State.HIT, State.KILLED, State.MISS]:
             logger.warning('This cell is hit or killed earlier')
-            return True
+            return True, self.getCell(x, y)
 
         if self.getCell(x, y) == State.FREE:
             self.setCell(x, y, State.MISS)
             logger.debug('Hit is missed')
-            return False
+            return False, self.getCell(x, y)
 
         if self.getCell(x, y) == State.OCCUPIED:
             self.setCell(x, y, State.HIT)
@@ -146,7 +156,7 @@ class GameModel(QObject):
                 # TODO: need to check
                 # self.shipKilled.emit(Ship(name='killed_ship', length=length, pos=pos, vertical=vertical))
 
-            return True
+            return True, self.getCell(x, y)
         else:
             raise Exception(f'Unknown state: {self.getCell(x, y)}')
 

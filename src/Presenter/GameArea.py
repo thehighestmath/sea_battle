@@ -627,11 +627,11 @@ class GameArea(QWidget):
             self.__validatePlacer()
 
     
-    def __accept(x, y):
+    def __accept(self, x, y):
         log.debug(f"accepted hit on point ({x}, {y})")
 
 
-    def __decline(x, y):
+    def __decline(self, x, y):
         log.debug(f"declined hit on point ({x}, {y})")
 
 

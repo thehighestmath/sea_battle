@@ -26,8 +26,8 @@ class GameWindow(QtWidgets.QWidget):
         super(GameWindow, self).__init__(parent)
         self.ui = Ui_GameWindow()
         self.ui.setupUi(self)
-        # self.ui.gameArea_1.shipPlaced.connect(self.foo)
-        # self.ui.gameArea_2.shipPlaced.connect(self.foo)
+        self.ui.gameArea_1.controller.hit.connect(self.foo)
+        self.ui.gameArea_2.controller.hit.connect(self.foo)
         self.ui.finishSettingShips.clicked.connect(self.next)
         self.ui.shuffleShips.clicked.connect(self.shuffleShips)
         self.currentState: States = States.INIT
@@ -50,8 +50,22 @@ class GameWindow(QtWidgets.QWidget):
         # TODO
         gameArea.shuffleShips()
 
-    def foo(self, val):
-        print(val)
+    def foo(self, controller, x, y):
+        if self.currentState == States.GAME:
+            if self.currentPlayer == 2 and controller == self.ui.gameArea_1.controller:
+                controller.accept()
+                isKeep, cellType = self.model_1.hit(x, y)
+                self.next(isKeep)
+                self.ui.statusbar.showMessage(f'Стреляет игрок {self.currentPlayer} | Prev hot - {cellType.name}')
+            elif self.currentPlayer == 1 and controller == self.ui.gameArea_2.controller:
+                controller.accept()
+                isKeep, cellType = self.model_2.hit(x, y)
+                self.next(isKeep)
+                self.ui.statusbar.showMessage(f'Стреляет игрок {self.currentPlayer} | Prev hot - {cellType.name}')
+            else:
+                controller.decline()
+
+
 
     def mousePressEvent(self, event: QMouseEvent):
         logger = logging.getLogger(__name__)
@@ -87,7 +101,6 @@ class GameWindow(QtWidgets.QWidget):
     def movePlayer(self, player: int):
         self.ui.wigdetPlayer_1.show()
         self.ui.wigdetPlayer_2.show()
-        self.hideShipsAndButton()
         if player == 1:
             isFirst = False
             effectWidget_1 = QGraphicsBlurEffect()
@@ -125,7 +138,12 @@ class GameWindow(QtWidgets.QWidget):
             )
             return False
         # TODO
-        model = GameModel(gameArea.getPlacedShips())
+        if player == 1:
+            self.model_1 = GameModel(player, gameArea.getPlacedShips())
+        elif player == 2:
+            self.model_2 = GameModel(player, gameArea.getPlacedShips())
+        else:
+            raise Exception(f'Player {player} does not supported')
         return True
 
     def next(self, keepPlayer: bool = False):
@@ -151,6 +169,7 @@ class GameWindow(QtWidgets.QWidget):
                 return
             self.currentState = States.GAME
             self.currentPlayer = random.randint(1, 2)
+            self.hideShipsAndButton()
             self.movePlayer(self.currentPlayer)
             self.ui.statusbar.showMessage(f'Стреляет игрок {self.currentPlayer}')
 
