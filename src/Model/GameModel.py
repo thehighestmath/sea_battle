@@ -246,18 +246,18 @@ class TestModel(unittest.TestCase):
              [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
         )
 
-    def testKeepPlayer(self):
+    def testKeepPlayerAndReturnState(self):
         model = GameModel()
         model.setMatrix(TestModel.initField)
-        self.assertEqual(model.hit(0, 0), True)
-        self.assertEqual(model.hit(0, 0), True)
-        self.assertEqual(model.hit(1, 1), False)
-        self.assertEqual(model.hit(1, 1), True)
-        self.assertEqual(model.hit(0, 9), True)
+        self.assertEqual(model.hit(0, 0), (True, State.HIT))
+        self.assertEqual(model.hit(0, 0), (True, State.HIT))
+        self.assertEqual(model.hit(1, 1), (False, State.MISS))
+        self.assertEqual(model.hit(1, 1), (True, State.MISS))
+        self.assertEqual(model.hit(0, 9), (True, State.KILLED))
         # prev hot kill ship that's why (1, 9) was marked as hooted
-        self.assertEqual(model.hit(1, 9), True)
-        self.assertEqual(model.hit(3, 9), False)
-        self.assertEqual(model.hit(3, 9), True)
+        self.assertEqual(model.hit(1, 9), (True, State.MISS))
+        self.assertEqual(model.hit(3, 9), (False, State.MISS))
+        self.assertEqual(model.hit(3, 9), (True, State.MISS))
 
     def testLongShip(self):
         model = GameModel()
