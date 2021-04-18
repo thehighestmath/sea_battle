@@ -127,8 +127,6 @@ class GameArea(QWidget):
         self.__initGraphicsView()
         self.__adjustedToSize = 0
 
-        self.shuffleShips()
-
 
     def __loadResources(self):
         if DEBUG_RESOURCE:
