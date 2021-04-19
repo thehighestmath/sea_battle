@@ -141,7 +141,7 @@ class GameArea(QWidget):
     #signals
     shipPlaced = pyqtSignal(Ship)
 
-    def __init__(self, parent = None):
+    def __init__(self, game_model = None, parent = None):
         super(GameArea, self).__init__(parent)
         self.__ui = Ui_GameArea()
         self.__ui.setupUi(self)
@@ -199,6 +199,8 @@ class GameArea(QWidget):
 
         # connect to model
         if game_model:
+            pass
+
 
     def __loadResources(self):
         if DEBUG_RESOURCE:
