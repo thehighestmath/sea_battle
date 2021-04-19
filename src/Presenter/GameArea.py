@@ -694,8 +694,6 @@ class GameArea(QWidget):
             x, y = self.sceneToMap(event.pos().x(), event.pos().y())
             if x >= 0 and x < 10 and y >= 0 and y < 10:
                 self.controller.emitHit(x, y)
-                self.__setCell(x, y, "miss")
-                self.__runAnimation(x, y, "splash")
 
         if event.button() == Qt.MouseButton.RightButton:
             if self.__dragShip:
