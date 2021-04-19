@@ -197,6 +197,8 @@ class GameArea(QWidget):
         self.__initGraphicsView()
         self.__adjustedToSize = 0
 
+        # connect to model
+        if game_model:
 
     def __loadResources(self):
         if DEBUG_RESOURCE:
