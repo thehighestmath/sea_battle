@@ -51,6 +51,9 @@ class GameWindow(QtWidgets.QWidget):
         gameArea.shuffleShips()
 
     def makeShot(self, controller, x, y):
+        log = logging.getLogger(__name__)
+
+        log.debug(f"{x}, {y}")
         if self.currentState == States.GAME:
             if self.currentPlayer == 2 and controller == self.ui.gameArea_1.controller:
                 isKeep, cellType = self.model_1.hit(x, y)
@@ -140,8 +143,10 @@ class GameWindow(QtWidgets.QWidget):
 
         if player == 1:
             self.model_1 = GameModel(player, gameArea.getPlacedShips())
+            gameArea.serviceModel(self.model_1)
         elif player == 2:
             self.model_2 = GameModel(player, gameArea.getPlacedShips())
+            gameArea.serviceModel(self.model_2)
         else:
             raise Exception(f'Player {player} does not supported')
         return True

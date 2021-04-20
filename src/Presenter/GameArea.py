@@ -137,7 +137,7 @@ class GameArea(QWidget):
     #signals
     shipPlaced = pyqtSignal(Ship)
 
-    def __init__(self, game_model = None, parent = None):
+    def __init__(self, parent = None):
         super(GameArea, self).__init__(parent)
         # super().__init__(self, parent)
         self.__ui = Ui_GameArea()
@@ -149,6 +149,7 @@ class GameArea(QWidget):
         self.controller = Controller()
         self.controller._accept = self.__accept
         self.controller._decline = self.__decline
+        self.__gameModel = None
 
         self.__shipList = {
             "boat":         ShipListItem(length=1, name="boat",       count=4),
@@ -194,9 +195,17 @@ class GameArea(QWidget):
         self.__initGraphicsView()
         self.__adjustedToSize = 0
 
-        # connect to model
-        if game_model:
-            pass
+
+    def serviceModel(self, game_model):
+        self.removeModel()
+        self.__gameModel = game_model
+        self.__gameModel.shipKilled.connect(self.__shootAround)
+
+
+    def removeModel(self):
+        if self.__gameModel:
+            self.shipKilled.disconnect()
+            self.__gameModel = None
 
     
     def __loadResources(self):
@@ -322,6 +331,26 @@ class GameArea(QWidget):
             sprite.stopAnimation()
 
         sprite.startAnimation(100, looped, removeAnimation)
+
+
+    def __shootAround(self, ship: Ship):
+        shipCells = []
+        for i in range(ship.length):
+            shipCells.append(ship.pos + (QPoint(0, i) if ship.vertical else QPoint(i, 0)))
+        cells = []
+
+        for cell in shipCells:
+            arounds = [cell + QPoint(i, j) for i in range(-1, 2) for j in range(-1, 2)]
+            for candidate in arounds:
+                if 0 <= candidate.x() < 10 and 0 <= candidate.y() < 10:
+                    if candidate not in cells:
+                        cells.append(candidate)
+
+        for cell in cells:
+            if cell not in shipCells:
+                self.__setCell(cell.x(), cell.y(), "miss")
+                self.__runAnimation(cell.x(), cell.y(), "splash")
+        log.debug(f"name: {ship.name} | length: {ship.length} | pos: {ship.pos} | vertical: {ship.vertical}")
 
 
     def hasHeightForWidth(self):
@@ -735,7 +764,9 @@ class GameArea(QWidget):
         elif hit_type in [CellState.MISS]:
             self.__setCell(x, y, 'miss')
             self.__runAnimation(x, y, "splash", looped=False)
-        log.debug(f"accepted hit on point ({x}, {y}) hit type: {hit_type}")
+        
+        # log.debug(f"EXTRA DEBUG ------ {x}, {y}, {hit_type}")
+        log.debug(f" -- ACCEPTED -- hit on point ({x}, {y}) hit type: {hit_type}")
 
 
     def __decline(self, x, y):

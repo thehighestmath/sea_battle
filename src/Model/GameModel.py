@@ -50,7 +50,7 @@ class GameModel(QObject):
     def getCell(self, x: int, y: int):
         logger = logging.getLogger(__name__)
         if not (0 <= x < 10 and 0 <= y < 10):
-            logger.warning('Coords of get must be in range [0, 10)')
+            # logger.warning('Coords of get must be in range [0, 10)')
             # thing about it
             return CellState.FREE
         return self.__matrix[y][x]
@@ -58,7 +58,7 @@ class GameModel(QObject):
     def setCell(self, x: int, y: int, state: CellState):
         logger = logging.getLogger(__name__)
         if not (0 <= x < 10 and 0 <= y < 10):
-            logger.warning('Coords of set must be in range [0, 10)')
+            # logger.warning('Coords of set must be in range [0, 10)')
             return None
         self.__matrix[y][x] = state
         self.dumpMatrix()
@@ -137,7 +137,6 @@ class GameModel(QObject):
                 self.hitAroundCells(pos, length, vertical)
                 # TODO: need to check
                 self.shipKilled.emit(Ship(name='killed_ship', length=length, pos=pos, vertical=vertical))
-
             return True, self.getCell(x, y)
         else:
             raise Exception(f'Unknown state: {self.getCell(x, y)}')
