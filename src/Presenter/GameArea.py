@@ -73,6 +73,7 @@ class SpriteItem(QGraphicsItem):
 
     def startAnimation(self, frame_length, loop, animationFinishedCallback = None):
         self.__timer.start(frame_length)
+        self.__loopAnimation = loop
         self.__animationFinishedCallback = animationFinishedCallback
 
     def stopAnimation(self):
@@ -730,8 +731,10 @@ class GameArea(QWidget):
     def __accept(self, x, y, hit_type: CellState):
         if hit_type in [CellState.HIT, CellState.KILLED]:
             self.__setCell(x, y, 'hit')
+            self.__runAnimation(x, y, "explosion", looped=True)
         elif hit_type in [CellState.MISS]:
             self.__setCell(x, y, 'miss')
+            self.__runAnimation(x, y, "splash", looped=False)
         log.debug(f"accepted hit on point ({x}, {y}) hit type: {hit_type}")
 
 
