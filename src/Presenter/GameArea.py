@@ -1,28 +1,26 @@
-import sys, os
 import logging
+import os
+import sys
 from enum import Enum
 
-#use PyQt5
-from PyQt5.QtWidgets import QApplication
-from PyQt5.QtGui import QFontDatabase
-
-from PyQt5.QtWidgets import QWidget, QGraphicsScene, QGraphicsItem, QSizePolicy
-from PyQt5.QtWidgets import QGraphicsPixmapItem, QGraphicsTextItem, QGraphicsRectItem
-
-from PyQt5.QtGui import QImage, QFont, QPixmap, QTransform, QPainter, QResizeEvent, QPen
-from PyQt5.QtCore import Qt, QSize, QMargins, QEvent, QRectF, QPoint, QPointF, QTimer, QRect
+from PyQt5.QtCore import Qt, QMargins, QEvent, QRectF, QPoint, QPointF, QTimer
 from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtGui import QFontDatabase
+from PyQt5.QtGui import QImage, QFont, QPixmap, QTransform, QPainter, QResizeEvent, QPen
+# use PyQt5
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QGraphicsPixmapItem, QGraphicsTextItem, QGraphicsRectItem
+from PyQt5.QtWidgets import QWidget, QGraphicsScene, QGraphicsItem
 
 # inner project imports
 import Environment
 from Model.Controller import Controller
-
 # ui
 from Presenter.ui_GameArea import Ui_GameArea
 
 DEBUG_RESOURCE = ""
 log = logging.getLogger("GameArea")
-
+from Model.CellState import CellState
 
 class ShipListItem():
     def __init__(self, length, name, count):
@@ -72,7 +70,6 @@ class SpriteItem(QGraphicsItem):
         if isAnimationFinished and not self.__loopAnimation:
             if(self.__animationFinishedCallback):
                 self.__animationFinishedCallback()
-        
 
     def startAnimation(self, frame_length, loop, animationFinishedCallback = None):
         self.__timer.start(frame_length)
@@ -80,7 +77,6 @@ class SpriteItem(QGraphicsItem):
 
     def stopAnimation(self):
         self.__timer.stop()
-
 
     def setSpriteMap(self, pixmap, height, width, count):
         self.__frameCount = count
@@ -100,7 +96,6 @@ class SpriteItem(QGraphicsItem):
             self.__spritePixmap,
             sourceRect
         )
-
 
 
 class Rotation(Enum):
@@ -732,8 +727,12 @@ class GameArea(QWidget):
             self.__validatePlacer()
 
     
-    def __accept(self, x, y, hit_type):
-        log.debug(f"accepted hit on point ({x}, {y})")
+    def __accept(self, x, y, hit_type: CellState):
+        if hit_type in [CellState.HIT, CellState.KILLED]:
+            self.__setCell(x, y, 'hit')
+        elif hit_type in [CellState.MISS]:
+            self.__setCell(x, y, 'miss')
+        log.debug(f"accepted hit on point ({x}, {y}) hit type: {hit_type}")
 
 
     def __decline(self, x, y):

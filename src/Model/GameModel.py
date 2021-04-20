@@ -1,32 +1,14 @@
 import copy
-import json
 import logging
 import pprint
 import unittest
-from enum import IntEnum
 from typing import List, Optional, Tuple
 
 from PyQt5.QtCore import QPoint, QObject, pyqtSignal
 from PyQt5.QtWidgets import QGraphicsPixmapItem
 
+from Model.CellState import CellState
 from Presenter.GameArea import Rotation, ShipListItem, Ship
-
-
-class State(IntEnum):
-    FREE = 0
-    OCCUPIED = 1
-    HIT = 2
-    KILLED = 3
-    MISS = 4
-
-    def isEndCell(self):
-        return self in [State.FREE, State.MISS]
-
-    def __str__(self):
-        return str(self.value)
-
-    def __repr__(self):
-        return str(self.value)
 
 
 class GameModel(QObject):
@@ -38,7 +20,7 @@ class GameModel(QObject):
             listOfShips = []
         self.player = player
         self.listOfShips: List[QGraphicsPixmapItem] = listOfShips
-        self.__matrix = [[State.FREE for _ in range(10)] for __ in range(10)]
+        self.__matrix = [[CellState.FREE for _ in range(10)] for __ in range(10)]
 
         for ship in self.listOfShips:
             r: Rotation = ship.data(0)
@@ -46,9 +28,9 @@ class GameModel(QObject):
             leftCorner: QPoint = ship.data(2)
             for i in range(shipItem.length):
                 if r.isVertical():
-                    self.setCell(leftCorner.x(), leftCorner.y() + i, State.OCCUPIED)
+                    self.setCell(leftCorner.x(), leftCorner.y() + i, CellState.OCCUPIED)
                 elif r.isHorizontal():
-                    self.setCell(leftCorner.x() + i, leftCorner.y(), State.OCCUPIED)
+                    self.setCell(leftCorner.x() + i, leftCorner.y(), CellState.OCCUPIED)
                 else:
                     raise Exception('Unknown rotation')
 
@@ -63,17 +45,17 @@ class GameModel(QObject):
         # for unittest
         for i in range(10):
             for j in range(10):
-                self.__matrix[i][j] = State(matrix[i][j])
+                self.__matrix[i][j] = CellState(matrix[i][j])
 
     def getCell(self, x: int, y: int):
         logger = logging.getLogger(__name__)
         if not (0 <= x < 10 and 0 <= y < 10):
             logger.warning('Coords of get must be in range [0, 10)')
             # thing about it
-            return State.FREE
+            return CellState.FREE
         return self.__matrix[y][x]
 
-    def setCell(self, x: int, y: int, state: State):
+    def setCell(self, x: int, y: int, state: CellState):
         logger = logging.getLogger(__name__)
         if not (0 <= x < 10 and 0 <= y < 10):
             logger.warning('Coords of set must be in range [0, 10)')
@@ -81,7 +63,7 @@ class GameModel(QObject):
         self.__matrix[y][x] = state
         self.dumpMatrix()
 
-    def hit(self, x: int, y: int) -> Tuple[bool, State]:
+    def hit(self, x: int, y: int) -> Tuple[bool, CellState]:
         """
         :param x: coord x
         :param y: coord y
@@ -89,17 +71,17 @@ class GameModel(QObject):
         """
         logger = logging.getLogger(__name__)
 
-        if self.getCell(x, y) in [State.HIT, State.KILLED, State.MISS]:
+        if self.getCell(x, y) in [CellState.HIT, CellState.KILLED, CellState.MISS]:
             logger.warning('This cell is hit or killed earlier')
             return True, self.getCell(x, y)
 
-        if self.getCell(x, y) == State.FREE:
-            self.setCell(x, y, State.MISS)
+        if self.getCell(x, y) == CellState.FREE:
+            self.setCell(x, y, CellState.MISS)
             logger.debug('Hit is missed')
             return False, self.getCell(x, y)
 
-        if self.getCell(x, y) == State.OCCUPIED:
-            self.setCell(x, y, State.HIT)
+        if self.getCell(x, y) == CellState.OCCUPIED:
+            self.setCell(x, y, CellState.HIT)
             logger.debug('Hit is on aim')
 
             killed = False
@@ -154,7 +136,7 @@ class GameModel(QObject):
                 pos = self.findLeftShipCorner(x, y, vertical)
                 self.hitAroundCells(pos, length, vertical)
                 # TODO: need to check
-                # self.shipKilled.emit(Ship(name='killed_ship', length=length, pos=pos, vertical=vertical))
+                self.shipKilled.emit(Ship(name='killed_ship', length=length, pos=pos, vertical=vertical))
 
             return True, self.getCell(x, y)
         else:
@@ -164,24 +146,24 @@ class GameModel(QObject):
         if vertical:
             for i in range(pos.x() - 1, pos.x() + 2):
                 for j in range(pos.y() - 1, pos.y() + length + 1):
-                    self.setCell(i, j, State.MISS)
+                    self.setCell(i, j, CellState.MISS)
             for j in range(pos.y(), pos.y() + length):
-                self.setCell(pos.x(), j, State.KILLED)
+                self.setCell(pos.x(), j, CellState.KILLED)
         else:
             for i in range(pos.x() - 1, pos.x() + length + 1):
                 for j in range(pos.y() - 1, pos.y() + 2):
-                    self.setCell(i, j, State.MISS)
+                    self.setCell(i, j, CellState.MISS)
             for i in range(pos.x(), pos.x() + length):
-                self.setCell(i, pos.y(), State.KILLED)
+                self.setCell(i, pos.y(), CellState.KILLED)
 
     def findLeftShipCorner(self, x: int, y: int, isVertical: bool):
         if isVertical:
-            for i in range(1, 4):
+            for i in range(1, 5):
                 cell = self.getCell(x, y - i)
                 if cell.isEndCell():
                     return QPoint(x, y - i + 1)
         else:
-            for i in range(1, 4):
+            for i in range(1, 5):
                 cell = self.getCell(x - i, y)
                 if cell.isEndCell():
                     return QPoint(x - i + 1, y)
@@ -203,9 +185,9 @@ class GameModel(QObject):
 
             if cell.isEndCell():
                 return length
-            if cell == State.OCCUPIED:
+            if cell == CellState.OCCUPIED:
                 return -1
-            if cell == State.HIT:
+            if cell == CellState.HIT:
                 length += 1
 
         return length
@@ -249,15 +231,15 @@ class TestModel(unittest.TestCase):
     def testKeepPlayerAndReturnState(self):
         model = GameModel()
         model.setMatrix(TestModel.initField)
-        self.assertEqual(model.hit(0, 0), (True, State.HIT))
-        self.assertEqual(model.hit(0, 0), (True, State.HIT))
-        self.assertEqual(model.hit(1, 1), (False, State.MISS))
-        self.assertEqual(model.hit(1, 1), (True, State.MISS))
-        self.assertEqual(model.hit(0, 9), (True, State.KILLED))
+        self.assertEqual(model.hit(0, 0), (True, CellState.HIT))
+        self.assertEqual(model.hit(0, 0), (True, CellState.HIT))
+        self.assertEqual(model.hit(1, 1), (False, CellState.MISS))
+        self.assertEqual(model.hit(1, 1), (True, CellState.MISS))
+        self.assertEqual(model.hit(0, 9), (True, CellState.KILLED))
         # prev hot kill ship that's why (1, 9) was marked as hooted
-        self.assertEqual(model.hit(1, 9), (True, State.MISS))
-        self.assertEqual(model.hit(3, 9), (False, State.MISS))
-        self.assertEqual(model.hit(3, 9), (True, State.MISS))
+        self.assertEqual(model.hit(1, 9), (True, CellState.MISS))
+        self.assertEqual(model.hit(3, 9), (False, CellState.MISS))
+        self.assertEqual(model.hit(3, 9), (True, CellState.MISS))
 
     def testLongShip(self):
         model = GameModel()
