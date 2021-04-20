@@ -127,8 +127,6 @@ class GameArea(QWidget):
         self.__initGraphicsView()
         self.__adjustedToSize = 0
 
-        self.shuffleShips()
-
 
     def __loadResources(self):
         if DEBUG_RESOURCE:
@@ -450,11 +448,11 @@ class GameArea(QWidget):
             y -= self.tileSize * length / 2
             return x, y
 
-    def __validatePosition(self, x, y):
+    def __validatePosition(self, x, y, width=1, height=1):
         isPlacerValid = True
         for ship in self.__placedShips:
-            shipRect = ship.mapRectToScene(ship.boundingRect())
-            positionRect = QRectF((x + 1) * self.tileSize, (y + 1) * self.tileSize, self.tileSize, self.tileSize)
+            shipRect = ship.mapRectToScene(ship.boundingRect()).adjusted(-self.tileSize/2, -self.tileSize/2, self.tileSize/2, self.tileSize/2)
+            positionRect = QRectF((x + 1) * self.tileSize, (y + 1) * self.tileSize, self.tileSize * width, self.tileSize * height)
             isPlacerValid = not positionRect.intersects(shipRect)
             if not isPlacerValid:
                 break
@@ -487,9 +485,7 @@ class GameArea(QWidget):
 
         # second validation - placer does not intersect with other ships
         if isPlacerValid:
-            x, y = self.__placer.pos().x(), self.__placer.pos().y()
-            x, y = self.sceneToMap(x, y)
-            isPlacerValid = self.__validatePosition(x, y)
+            isPlacerValid = self.__validatePosition(x, y, placerSize.width() / self.tileSize, placerSize.height() / self.tileSize)
 
         # set color of placer
         pen = self.__placer.pen()
