@@ -50,6 +50,8 @@ class MainWindow(QMainWindow):
         self.currentWidget = DisplayedWidget.MENU
         self.menuButton.setVisible(False)
         self.display()
+        self.Stack.removeWidget(self.Stack.widget(DisplayedWidget.GAME))
+        self.Stack.addWidget(GameWindow())
 
     @pyqtSlot()
     def goToGameWindow(self):
