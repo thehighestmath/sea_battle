@@ -62,8 +62,8 @@ class GameWindow(QtWidgets.QWidget):
                 controller.accept(cellType)
                 self.next(isKeep)
                 self.ui.statusbar.showMessage(f'Стреляет игрок {self.currentPlayer} | Prev hot - {cellType.name}')
-            else:
-                controller.decline()
+        else:
+            controller.decline()
 
 
 
