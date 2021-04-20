@@ -407,7 +407,7 @@ class GameArea(QWidget):
 
         def findPossibleCells(length, rotation):
             vertical = rotation.isVertical()
-            if rotation == rotation.isHorizontal():
+            if vertical == rotation.isHorizontal():
                 raise Exception("Unknown state! Rotation is not horizontal and not vertical.")  # wtf
 
             width = 1 if vertical else length
@@ -431,7 +431,8 @@ class GameArea(QWidget):
                 cells = findPossibleCells(shipItem.length, rot)
                 
                 if not cells:
-                    cells = findPossibleCells(shipItem.length, rot.next())
+                    rot = rot.next()
+                    cells = findPossibleCells(shipItem.length, rot)
 
                 cell = random.choice(cells)
                 self.__placeShip(shipItem, cell.x(), cell.y(), rot)
