@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 
@@ -8,6 +9,9 @@ import Environment
 from MainWindow import MainWindow
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
     app = QApplication(sys.argv)
     QFontDatabase.addApplicationFont(os.path.join(Environment.Resources.path(), "fonts", "Roboto", "Roboto-Bold.ttf"))
     ex = MainWindow()

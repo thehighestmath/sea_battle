@@ -19,13 +19,13 @@ class Controller(QObject):
         self.__lastHit.append((x, y))
         self.hit.emit(self, x, y)
 
-    def _accept(self, x, y):
+    def _accept(self, x, y, hit_type):
         raise NotImplementedError()
 
     def _decline(self, x, y):
         raise NotImplementedError()
 
-    def accept(self, hit_type="miss"):
+    def accept(self, hit_type):
         if not self.__lastHit:
             raise LookupError("Event already handled")
 
