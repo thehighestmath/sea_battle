@@ -1,9 +1,10 @@
 import logging
 import os
 import sys
+import random
 from enum import Enum
 
-from PyQt5.QtCore import Qt, QMargins, QEvent, QRectF, QPoint, QPointF, QTimer
+from PyQt5.QtCore import Qt, QMargins, QEvent, QRectF, QRect, QPoint, QPointF, QTimer
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QFontDatabase
 from PyQt5.QtGui import QImage, QFont, QPixmap, QTransform, QPainter, QResizeEvent, QPen
@@ -139,7 +140,6 @@ class GameArea(QWidget):
 
     def __init__(self, parent = None):
         super(GameArea, self).__init__(parent)
-        # super().__init__(self, parent)
         self.__ui = Ui_GameArea()
         self.__ui.setupUi(self)
 
@@ -389,49 +389,52 @@ class GameArea(QWidget):
         if self.__shipListItem.scene() is None:
             return
         
-        for ship in self.placedShipsCount:
+        for ship in self.__placedShips:
             shipListItem = ship.data(1)
             shipListItem.count += 1 
             shipListItem.counterText.setPlainText(str(shipListItem.count))
-            self.__placedShips.remove(ship)
             self.__scene.removeItem(ship)
+
+        self.__placedShips.clear()
+        
 
        
     def shuffleShips(self):
         if self.__shipListItem.scene() is None:
             return
 
-        # static placing
-        for i in range(4):
-            x = i*2
-            y = 0
-            rotation = Rotation.DOWN
-            shipListItem = self.__shipList["boat"]
-            self.__placeShip(shipListItem, x, y, rotation)
+        self.removePlacedShips()
 
-        for i in range(3):
-            x = i*2
-            y = 2
-            rotation = Rotation.DOWN
-            shipListItem = self.__shipList["destroyer"]
-            self.__placeShip(shipListItem, x, y, rotation)
+        def findPossibleCells(length, rotation):
+            vertical = rotation.isVertical()
+            if rotation == rotation.isHorizontal():
+                raise Exception("Unknown state! Rotation is not horizontal and not vertical.")  # wtf
 
-        for i in range(2):
-            x = i*2
-            y = 5
-            rotation = Rotation.DOWN
-            shipListItem = self.__shipList["cruiser"]
-            self.__placeShip(shipListItem, x, y, rotation)
+            width = 1 if vertical else length
+            height = length if vertical else 1
 
-        for i in range(1):
-            x = i*2
-            y = 9
-            rotation = Rotation.RIGHT
-            shipListItem = self.__shipList["battleship"]
-            self.__placeShip(shipListItem, x, y, rotation)
+            cells = []
 
-        # TODO: SHUFFLE
-        pass
+            for x in range(10):
+                for y in range(10):
+                    if QRect(0, 0, 10, 10) != QRect(0, 0, 10, 10).united(QRect(x, y, width, height)):
+                        break
+                    if self.__validatePosition(x, y, width, height):
+                        cells.append(QPoint(x, y))
+
+            return cells
+            
+
+        for shipItem in self.__shipList.values():
+            for i in range(shipItem.count):
+                rot = random.choice(list(Rotation))
+                cells = findPossibleCells(shipItem.length, rot)
+                
+                if not cells:
+                    cells = findPossibleCells(shipItem.length, rot.next())
+
+                cell = random.choice(cells)
+                self.__placeShip(shipItem, cell.x(), cell.y(), rot)
 
 
     def resizeEvent(self, event):
@@ -592,10 +595,11 @@ class GameArea(QWidget):
             return x, y
 
     def __validatePosition(self, x, y, width=1, height=1):
+        positionRect = QRectF((x + 1) * self.tileSize, (y + 1) * self.tileSize, self.tileSize * width, self.tileSize * height)
+
         isPlacerValid = True
         for ship in self.__placedShips:
             shipRect = ship.mapRectToScene(ship.boundingRect()).adjusted(-self.tileSize/2, -self.tileSize/2, self.tileSize/2, self.tileSize/2)
-            positionRect = QRectF((x + 1) * self.tileSize, (y + 1) * self.tileSize, self.tileSize * width, self.tileSize * height)
             isPlacerValid = not positionRect.intersects(shipRect)
             if not isPlacerValid:
                 break
@@ -750,23 +754,26 @@ class GameArea(QWidget):
             permittedArea = QRectF(self.__ui.graphicsView.viewport().geometry())
             permittedArea.setTopLeft(QPointF(self.tileSize, self.tileSize))
 
-            if not permittedArea.contains(event.pos()):
-                self.__scene.removeItem(self.__ghostShip)
-                self.__dragShip = False
+            # stop dragging ship if mouse out of field
+            # if not permittedArea.contains(event.pos()):
+            #     self.__scene.removeItem(self.__ghostShip)
+            #     self.__dragShip = False
 
             self.__validatePlacer()
 
     
     def __accept(self, x, y, hit_type: CellState):
+        log.debug(f" -- ACCEPTED -- hit on point ({x}, {y}) hit type: {hit_type}")
+        cell = self.__field[y * 10 + x]
+        
+        if cell.data(0) != "intact":
+            return
         if hit_type in [CellState.HIT, CellState.KILLED]:
             self.__setCell(x, y, 'hit')
             self.__runAnimation(x, y, "explosion", looped=True)
         elif hit_type in [CellState.MISS]:
             self.__setCell(x, y, 'miss')
             self.__runAnimation(x, y, "splash", looped=False)
-        
-        # log.debug(f"EXTRA DEBUG ------ {x}, {y}, {hit_type}")
-        log.debug(f" -- ACCEPTED -- hit on point ({x}, {y}) hit type: {hit_type}")
 
 
     def __decline(self, x, y):
