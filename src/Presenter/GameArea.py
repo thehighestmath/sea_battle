@@ -732,7 +732,7 @@ class GameArea(QWidget):
             self.__validatePlacer()
 
     
-    def __accept(x, y, hit_type):
+    def __accept(self, x, y, hit_type):
         log.debug(f"accepted hit on point ({x}, {y})")
 
 
