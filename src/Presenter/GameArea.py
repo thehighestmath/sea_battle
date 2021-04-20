@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import QWidget, QGraphicsScene, QGraphicsItem, QSizePolicy
 from PyQt5.QtWidgets import QGraphicsPixmapItem, QGraphicsTextItem, QGraphicsRectItem
 
 from PyQt5.QtGui import QImage, QFont, QPixmap, QTransform, QPainter, QResizeEvent, QPen
-from PyQt5.QtCore import Qt, QSize, QMargins, QEvent, QRectF, QPoint, QPointF
+from PyQt5.QtCore import Qt, QSize, QMargins, QEvent, QRectF, QPoint, QPointF, QTimer, QRect
 from PyQt5.QtCore import pyqtSignal
 
 # inner project imports
@@ -43,6 +43,64 @@ class Ship():
         self.length   = length
         self.pos      = pos
         self.vertical = vertical
+
+
+class SpriteItem(QGraphicsItem):
+    def __init__(self, parent=None):
+        super(SpriteItem, self).__init__(parent)
+        self.__spritePixmap = None
+        self.__currentFrame = 0
+        self.__boundingRect = QRectF(0, 0, 0, 0)
+        
+        self.__frameCount = 0
+        self.__loopAnimation = False
+
+        self.__timer = QTimer()
+        self.__timer.timeout.connect(self.__nextFrame)
+
+        self.__animationFinishedCallback = None
+
+    def __nextFrame(self):
+        self.__currentFrame += 1
+        isAnimationFinished = False
+        if self.__currentFrame >= self.__frameCount:
+            self.__currentFrame = 0
+            isAnimationFinished = True
+            
+        self.update(self.__boundingRect)
+
+        if isAnimationFinished and not self.__loopAnimation:
+            if(self.__animationFinishedCallback):
+                self.__animationFinishedCallback()
+        
+
+    def startAnimation(self, frame_length, loop, animationFinishedCallback = None):
+        self.__timer.start(frame_length)
+        self.__animationFinishedCallback = animationFinishedCallback
+
+    def stopAnimation(self):
+        self.__timer.stop()
+
+
+    def setSpriteMap(self, pixmap, height, width, count):
+        self.__frameCount = count
+        self.__spritePixmap = pixmap
+        self.__boundingRect = QRectF(0, 0, width, height)
+
+    def boundingRect(self):
+        return self.__boundingRect
+
+    def paint(self, painter, style_option, widget):
+        width = self.__boundingRect.width()
+        height = self.__boundingRect.height()
+        
+        sourceRect = QRectF(width * self.__currentFrame, 0, width, height)
+        painter.drawPixmap(
+            self.__boundingRect,
+            self.__spritePixmap,
+            sourceRect
+        )
+
 
 
 class Rotation(Enum):
@@ -83,7 +141,7 @@ class GameArea(QWidget):
     #signals
     shipPlaced = pyqtSignal(Ship)
 
-    def __init__(self, parent = None):
+    def __init__(self, game_model = None, parent = None):
         super(GameArea, self).__init__(parent)
         # super().__init__(self, parent)
         self.__ui = Ui_GameArea()
@@ -109,6 +167,12 @@ class GameArea(QWidget):
             "hit":          None,
             "miss":         None
         }
+
+        self.__sprites = {
+            "explosion":    None,
+            "splash":       None
+        }
+
         self.__originalTileSize = 0
         self.tileSize = 0
 
@@ -120,6 +184,8 @@ class GameArea(QWidget):
         self.__field       = [QGraphicsPixmapItem() for _ in range(100)]
         self.__letters     = [QGraphicsTextItem()   for _ in range(10) ]
         self.__numbers     = [QGraphicsTextItem()   for _ in range(10) ]
+        
+        self.__spriteAnimations = []
      
         self.__shipListItem = QGraphicsPixmapItem()
         self.__ghostShip = QGraphicsPixmapItem() # data: 0 - rotation; 1 - ShipListItem
@@ -132,9 +198,11 @@ class GameArea(QWidget):
         self.__initGraphicsView()
         self.__adjustedToSize = 0
 
-        # self.shuffleShips()
+        # connect to model
+        if game_model:
+            pass
 
-
+    
     def __loadResources(self):
         if DEBUG_RESOURCE:
             resourcesPath = os.path.join(os.path.dirname(__file__), DEBUG_RESOURCE)
@@ -150,6 +218,10 @@ class GameArea(QWidget):
             else:
                 self.__originalTileSize = min(self.__originalTileSize, image.width(), image.height())
             self.__cellImages[imageName] = image
+
+        for spriteName in self.__sprites:
+            image = QImage(os.path.join(resourcesPath, "img", "cells", f"{spriteName}.png"))
+            self.__sprites[spriteName] = image
 
         for shipName, ship in self.__shipList.items():
             ship.image = QImage(os.path.join(resourcesPath, "img", "ships", f"{shipName}.png"))
@@ -224,6 +296,36 @@ class GameArea(QWidget):
         pen.setStyle(Qt.PenStyle.DashLine)
         pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
         self.__placer.setPen(pen)
+
+
+    def __setCell(self, x, y, cell_type):
+        if cell_type not in self.__cellImages.keys():
+            raise ValueError(f"Type is {cell_type}. Allowed \"intact\", \"miss\", \"hit\"")
+
+        cellItem = self.__field[y * 10 + x]
+        cellItem.setData(0, cell_type)
+        pixmap = QPixmap.fromImage(self.__cellImages[cell_type])
+        cellItem.setPixmap(pixmap)
+
+
+    def __runAnimation(self, x, y, animation, looped=False):
+        sprite = SpriteItem()
+        sprite.setData(0, QPoint(x, y))
+        spritePixmap = QPixmap.fromImage(self.__sprites[animation])
+        
+        sprite.setSpriteMap(spritePixmap, 60, 60, 5)
+        sprite.setScale(self.__scaleFactor)
+        sprite.setPos((x + 1) * self.tileSize, (y + 1) * self.tileSize)
+
+        self.__spriteAnimations.append(sprite)
+        self.__scene.addItem(sprite)
+
+        def removeAnimation():
+            self.__scene.removeItem(sprite)
+            self.__spriteAnimations.remove(sprite)
+            sprite.stopAnimation()
+
+        sprite.startAnimation(100, looped, removeAnimation)
 
 
     def hasHeightForWidth(self):
@@ -340,6 +442,11 @@ class GameArea(QWidget):
             y = i // 10
             cell.setScale(self.__scaleFactor)
             cell.setPos((x + 1) * self.tileSize, (y + 1) * self.tileSize)
+
+        for sprite in self.__spriteAnimations:
+            pos = sprite.data(0)
+            sprite.setPos((pos.x() + 1) * self.tileSize, (pos.y() + 1) * self.tileSize)
+            sprite.setScale(self.__scaleFactor)
 
         for i in range(10):
             letter = self.__letters[i]
@@ -459,11 +566,11 @@ class GameArea(QWidget):
             y -= self.tileSize * length / 2
             return x, y
 
-    def __validatePosition(self, x, y):
+    def __validatePosition(self, x, y, width=1, height=1):
         isPlacerValid = True
         for ship in self.__placedShips:
-            shipRect = ship.mapRectToScene(ship.boundingRect())
-            positionRect = QRectF((x + 1) * self.tileSize, (y + 1) * self.tileSize, self.tileSize, self.tileSize)
+            shipRect = ship.mapRectToScene(ship.boundingRect()).adjusted(-self.tileSize/2, -self.tileSize/2, self.tileSize/2, self.tileSize/2)
+            positionRect = QRectF((x + 1) * self.tileSize, (y + 1) * self.tileSize, self.tileSize * width, self.tileSize * height)
             isPlacerValid = not positionRect.intersects(shipRect)
             if not isPlacerValid:
                 break
@@ -496,9 +603,7 @@ class GameArea(QWidget):
 
         # second validation - placer does not intersect with other ships
         if isPlacerValid:
-            x, y = self.__placer.pos().x(), self.__placer.pos().y()
-            x, y = self.sceneToMap(x, y)
-            isPlacerValid = self.__validatePosition(x, y)
+            isPlacerValid = self.__validatePosition(x, y, placerSize.width() / self.tileSize, placerSize.height() / self.tileSize)
 
         # set color of placer
         pen = self.__placer.pen()
@@ -627,7 +732,7 @@ class GameArea(QWidget):
             self.__validatePlacer()
 
     
-    def __accept(self, x, y):
+    def __accept(x, y, hit_type):
         log.debug(f"accepted hit on point ({x}, {y})")
 
 
