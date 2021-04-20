@@ -1,13 +1,15 @@
 import logging
 from collections import deque
+
 from PyQt5.QtCore import QObject
 from PyQt5.QtCore import pyqtSignal
 
 log = logging.getLogger("GameArea")
 
+
 class Controller(QObject):
     hit = pyqtSignal(QObject, int, int)
-    
+
     def __init__(self):
         super(Controller, self).__init__()
         self.__lastHit = deque()
@@ -17,10 +19,10 @@ class Controller(QObject):
         self.__lastHit.append((x, y))
         self.hit.emit(self, x, y)
 
-    def _accept(self):
+    def _accept(self, x, y):
         raise NotImplementedError()
 
-    def _decline(self):
+    def _decline(self, x, y):
         raise NotImplementedError()
 
     def accept(self, hit_type="miss"):

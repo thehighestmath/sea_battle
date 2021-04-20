@@ -143,6 +143,7 @@ class GameArea(QWidget):
 
     def __init__(self, game_model = None, parent = None):
         super(GameArea, self).__init__(parent)
+        # super().__init__(self, parent)
         self.__ui = Ui_GameArea()
         self.__ui.setupUi(self)
 
@@ -201,7 +202,7 @@ class GameArea(QWidget):
         if game_model:
             pass
 
-
+    
     def __loadResources(self):
         if DEBUG_RESOURCE:
             resourcesPath = os.path.join(os.path.dirname(__file__), DEBUG_RESOURCE)
@@ -344,6 +345,10 @@ class GameArea(QWidget):
         self.__adjustedToSize = None
         resize = QResizeEvent(self.size(), self.size())
         QApplication.postEvent(self, resize)
+
+
+    def getPlacedShips(self):
+        return self.__placedShips
 
 
     def placedShipsCount(self):
@@ -551,13 +556,13 @@ class GameArea(QWidget):
         pos = self.__ghostShip.pos()
         x = pos.x()
         y = pos.y()
-        rot = self.__ghostShip.data(0)
+        rot: Rotation = self.__ghostShip.data(0)
         length = self.__ghostShip.data(1).length
-        if rot == Rotation.LEFT or rot == Rotation.RIGHT:
+        if rot.isHorizontal():
             x -= self.tileSize * length / 2
             return x, y
 
-        if rot == Rotation.UP or rot == Rotation.DOWN:
+        if rot.isVertical():
             y -= self.tileSize * length / 2
             return x, y
 
@@ -731,7 +736,7 @@ class GameArea(QWidget):
         log.debug(f"accepted hit on point ({x}, {y})")
 
 
-    def __decline(x, y):
+    def __decline(self, x, y):
         log.debug(f"declined hit on point ({x}, {y})")
 
 
