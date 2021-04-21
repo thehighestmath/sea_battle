@@ -425,7 +425,9 @@ class GameArea(QWidget):
             return cells
             
 
-        for shipItem in self.__shipList.values():
+        shipList = list(self.__shipList.values())
+        shipList.sort(key=lambda ship: ship.length, reverse=True)
+        for shipItem in shipList:
             for i in range(shipItem.count):
                 rot = random.choice(list(Rotation))
                 cells = findPossibleCells(shipItem.length, rot)
@@ -433,6 +435,9 @@ class GameArea(QWidget):
                 if not cells:
                     rot = rot.next()
                     cells = findPossibleCells(shipItem.length, rot)
+
+                if not cells:
+                    return
 
                 cell = random.choice(cells)
                 self.__placeShip(shipItem, cell.x(), cell.y(), rot)
