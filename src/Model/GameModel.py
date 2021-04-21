@@ -63,6 +63,18 @@ class GameModel(QObject):
         self.__matrix[y][x] = state
         self.dumpMatrix()
 
+    def isOver(self) -> bool:
+        """
+        :return: true if all ships were killed else false
+        """
+        countKilledCells = 0
+        for row in self.__matrix:
+            for item in row:
+                if item == CellState.KILLED:
+                    countKilledCells += 1
+        print(countKilledCells)
+        return countKilledCells == (4 * 1 + 3 * 2 + 2 * 3 + 1 * 4)
+
     def hit(self, x: int, y: int) -> Tuple[bool, CellState]:
         """
         :param x: coord x

@@ -8,5 +8,5 @@ then
 else
     path=$1
 fi
-pyinstaller --onefile -F --add-data "$path/:$path" src/test_main.py
+pyinstaller --onefile -F --add-data "$path/:$path" src/main.py
 
