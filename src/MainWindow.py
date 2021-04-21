@@ -1,4 +1,6 @@
 from enum import IntEnum
+
+from PyQt5 import QtGui
 from PyQt5.QtCore import pyqtSlot, QEvent, Qt, QCoreApplication
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QStackedWidget, QAction
 
@@ -56,6 +58,9 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('Морской бой')
         self.show()
 
+        self.mLastMousePosition = None
+        self.mMoving = None
+
     @pyqtSlot()
     def goToMenu(self):
         self.currentWidget = DisplayedWidget.MENU
@@ -73,3 +78,16 @@ class MainWindow(QMainWindow):
 
     def quit(self):
         QCoreApplication.quit()
+
+    def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.mMoving = True
+            self.mLastMousePosition = event.pos()
+
+    def mouseMoveEvent(self, event: QtGui.QMouseEvent) -> None:
+        if self.mMoving:
+            self.move(self.pos() + event.pos() - self.mLastMousePosition)
+
+    def mouseReleaseEvent(self, event: QtGui.QMouseEvent) -> None:
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.mMoving = False
