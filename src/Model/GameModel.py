@@ -72,7 +72,6 @@ class GameModel(QObject):
             for item in row:
                 if item == CellState.KILLED:
                     countKilledCells += 1
-        print(countKilledCells)
         return countKilledCells == (4 * 1 + 3 * 2 + 2 * 3 + 1 * 4)
 
     def hit(self, x: int, y: int) -> Tuple[bool, CellState]:
@@ -147,7 +146,6 @@ class GameModel(QObject):
             if killed:
                 pos = self.findLeftShipCorner(x, y, vertical)
                 self.hitAroundCells(pos, length, vertical)
-                # TODO: need to check
                 self.shipKilled.emit(Ship(name='killed_ship', length=length, pos=pos, vertical=vertical))
             return True, self.getCell(x, y)
         else:
