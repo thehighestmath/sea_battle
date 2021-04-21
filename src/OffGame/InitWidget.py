@@ -1,10 +1,17 @@
 import sys
+import os
+
 from PyQt5 import QtWidgets
-from OffGame.UI_InitWidget import Ui_InitWidget
 from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPixmap, QTransform
 
+# inner project imports
+import Environment
 
-class InitWidget(QtWidgets.QWidget, Ui_InitWidget):
+from OffGame.UI_InitWidget import Ui_InitWidget
+
+class InitWidget(QtWidgets.QWidget):
 
     PvAISignal = pyqtSignal()
     PvPSignal = pyqtSignal()
@@ -12,10 +19,17 @@ class InitWidget(QtWidgets.QWidget, Ui_InitWidget):
 
     def __init__(self):
         super().__init__()
-        self.setupUi(self)
-        self.PVAI.clicked.connect(self.PvsAI)
-        self.PVP.clicked.connect(self.PvsP)
-        self.hst.clicked.connect(self.showHST)
+        self.ui = Ui_InitWidget()
+        self.ui.setupUi(self)
+
+        resourcePath = Environment.Resources.path()
+        imagePath = os.path.join(resourcePath, "img", "miscellaneous", "logo.png")
+        pixmap = QPixmap(imagePath).transformed(QTransform().scale(0.7, 0.7), Qt.TransformationMode.SmoothTransformation)
+        self.ui.label.setPixmap(pixmap)
+
+        self.ui.PVE.clicked.connect(self.PvsAI)
+        self.ui.PVP.clicked.connect(self.PvsP)
+        self.ui.highscoreTable.clicked.connect(self.showHST)
 
     def PvsAI(self):
         self.PvAISignal.emit()
