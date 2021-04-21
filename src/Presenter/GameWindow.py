@@ -2,7 +2,7 @@ import logging
 import random
 import signal
 import sys
-from enum import Enum
+from enum import IntEnum
 from typing import Optional
 
 from PyQt5 import QtWidgets, QtCore
@@ -14,11 +14,12 @@ from Presenter.GameArea import GameArea
 from Presenter.gamewindow_ui import Ui_GameWindow
 
 
-class States(Enum):
+class GameState(IntEnum):
     INIT = 0
     FIRST_PREPARE = 1
     SECOND_PREPARE = 2
     GAME = 3
+    GAME_OVER = 4
 
 
 class GameWindow(QtWidgets.QWidget):
@@ -30,7 +31,7 @@ class GameWindow(QtWidgets.QWidget):
         self.ui.gameArea_2.controller.hit.connect(self.makeShot)
         self.ui.finishSettingShips.clicked.connect(self.next)
         self.ui.shuffleShips.clicked.connect(self.shuffleShips)
-        self.currentState: States = States.INIT
+        self.currentState: GameState = GameState.INIT
         self.currentPlayer: int = -1
         self.next()
         self.model_1: Optional[GameModel] = None
@@ -54,21 +55,33 @@ class GameWindow(QtWidgets.QWidget):
         log = logging.getLogger(__name__)
 
         log.debug(f"{x}, {y}")
-        if self.currentState == States.GAME:
+        if self.currentState == GameState.GAME:
             if self.currentPlayer == 2 and controller == self.ui.gameArea_1.controller:
                 isKeep, cellType = self.model_1.hit(x, y)
                 controller.accept(cellType)
                 self.next(isKeep)
                 self.ui.statusbar.showMessage(f'Стреляет игрок {self.currentPlayer} | Prev hot - {cellType.name}')
+                if self.model_1.isOver():
+                    self.ui.statusbar.showMessage(f'Игра закончена. Выиграл игрок 2')
+                    self.gameOver()
             elif self.currentPlayer == 1 and controller == self.ui.gameArea_2.controller:
                 isKeep, cellType = self.model_2.hit(x, y)
                 controller.accept(cellType)
                 self.next(isKeep)
                 self.ui.statusbar.showMessage(f'Стреляет игрок {self.currentPlayer} | Prev hot - {cellType.name}')
+                if self.model_2.isOver():
+                    self.ui.statusbar.showMessage(f'Игра закончена. Выиграл игрок 1')
+                    self.gameOver()
+            else:
+                controller.decline()
         else:
             controller.decline()
 
 
+    def gameOver(self):
+        logger = logging.getLogger(__name__)
+        logger.debug(f"Игра окончена. Выиграл игрок {self.currentPlayer}")
+        self.currentState = GameState.GAME_OVER
 
     def mousePressEvent(self, event: QMouseEvent):
         logger = logging.getLogger(__name__)
@@ -152,33 +165,33 @@ class GameWindow(QtWidgets.QWidget):
         return True
 
     def next(self, keepPlayer: bool = False):
-        if keepPlayer and self.currentState in [States.INIT, States.FIRST_PREPARE, States.SECOND_PREPARE]:
+        if keepPlayer and self.currentState in [GameState.INIT, GameState.FIRST_PREPARE, GameState.SECOND_PREPARE]:
             raise Exception(f'Impossible use [keep_player=True] while state is {self.currentState}')
 
-        if self.currentState == States.INIT:
-            self.currentState = States.FIRST_PREPARE
+        if self.currentState == GameState.INIT:
+            self.currentState = GameState.FIRST_PREPARE
             self.currentPlayer = random.randint(1, 2)
             self.preparePlayer(self.currentPlayer)
             self.ui.statusbar.showMessage(f'Расставляет корабли игрок {self.currentPlayer}')
 
-        elif self.currentState == States.FIRST_PREPARE:
+        elif self.currentState == GameState.FIRST_PREPARE:
             if not self.checkCountShips(self.currentPlayer):
                 return
-            self.currentState = States.SECOND_PREPARE
+            self.currentState = GameState.SECOND_PREPARE
             self.currentPlayer = 2 if self.currentPlayer == 1 else 1
             self.preparePlayer(self.currentPlayer)
             self.ui.statusbar.showMessage(f'Расставляет корабли игрок {self.currentPlayer}')
 
-        elif self.currentState == States.SECOND_PREPARE:
+        elif self.currentState == GameState.SECOND_PREPARE:
             if not self.checkCountShips(self.currentPlayer):
                 return
-            self.currentState = States.GAME
+            self.currentState = GameState.GAME
             self.currentPlayer = random.randint(1, 2)
             self.hideShipsAndButton()
             self.movePlayer(self.currentPlayer)
             self.ui.statusbar.showMessage(f'Стреляет игрок {self.currentPlayer}')
 
-        elif self.currentState == States.GAME:
+        elif self.currentState == GameState.GAME:
             if not keepPlayer:
                 self.currentPlayer = 2 if self.currentPlayer == 1 else 1
             self.movePlayer(self.currentPlayer)
