@@ -5,6 +5,8 @@ import sys
 from enum import Enum
 from typing import Optional
 
+import time
+
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QMouseEvent
@@ -53,7 +55,6 @@ class GameWindow(QtWidgets.QWidget):
         else:
             raise Exception(f'Player {player} does not supported')
 
-        # TODO
         gameArea.shuffleShips()
 
     def makeShot(self, controller, x, y):
