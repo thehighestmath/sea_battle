@@ -6,12 +6,15 @@ from enum import IntEnum
 from typing import Optional
 
 from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import QGraphicsBlurEffect
 
 from Model.GameModel import GameModel
 from Presenter.GameArea import GameArea
 from Presenter.gamewindow_ui import Ui_GameWindow
+
+DEBUG = True
 
 
 class GameState(IntEnum):
@@ -23,6 +26,8 @@ class GameState(IntEnum):
 
 
 class GameWindow(QtWidgets.QWidget):
+    gameOverSignal = pyqtSignal(str)
+
     def __init__(self, parent=None):
         super(GameWindow, self).__init__(parent)
         self.ui = Ui_GameWindow()
@@ -36,6 +41,7 @@ class GameWindow(QtWidgets.QWidget):
         self.next()
         self.model_1: Optional[GameModel] = None
         self.model_2: Optional[GameModel] = None
+        self.gameOverSignal.connect(self.gameOverDummy)
 
     def shuffleShips(self):
         gameArea: Optional[GameArea] = None
@@ -71,11 +77,11 @@ class GameWindow(QtWidgets.QWidget):
         else:
             controller.decline()
 
-
     def gameOver(self):
         logger = logging.getLogger(__name__)
         logger.debug(f"Игра окончена. Выиграл игрок {self.currentPlayer}")
         self.currentState = GameState.GAME_OVER
+        self.gameOverSignal.emit(f'Player {self.currentPlayer}')
 
     def mousePressEvent(self, event: QMouseEvent):
         logger = logging.getLogger(__name__)
@@ -90,8 +96,9 @@ class GameWindow(QtWidgets.QWidget):
     def hideShipsAndButton(self):
         self.ui.gameArea_1.hideShipList()
         self.ui.gameArea_2.hideShipList()
-        self.ui.gameArea_1.hideShips()
-        self.ui.gameArea_2.hideShips()
+        if not DEBUG:
+            self.ui.gameArea_1.hideShips()
+            self.ui.gameArea_2.hideShips()
         self.ui.buttonWidget.hide()
 
     def preparePlayer(self, player: int):
@@ -190,6 +197,9 @@ class GameWindow(QtWidgets.QWidget):
 
         else:
             raise Exception(f'Unknown type: {self.currentState}')
+
+    def gameOverDummy(self, player):
+        self.ui.statusbar.showMessage(f'Выиграл {player}')
 
 
 if __name__ == '__main__':
