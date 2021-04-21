@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QMainWindow, QPushButton, QStackedWidget, QAction
 
 from Presenter.GameWindow import GameWindow
 from OffGame.InitWidget import InitWidget
+from OffGame.GameOverWidget import GameOverWidget
 
 
 class DisplayedWidget(IntEnum):
@@ -60,6 +61,7 @@ class MainWindow(QMainWindow):
 
         self.mLastMousePosition = None
         self.mMoving = None
+        self.gameOverWidget = None
 
     @pyqtSlot()
     def goToMenu(self):
@@ -70,8 +72,23 @@ class MainWindow(QMainWindow):
     @pyqtSlot()
     def goToGameWindow(self):
         self.currentWidget = DisplayedWidget.GAME
+
+        self.gameWindow = GameWindow()
+        self.gameWindow.gameOverSignal.connect(self.showGameOver)
+        self.Stack.insertWidget(DisplayedWidget.GAME, self.gameWindow)
+        
         self.menuButton.setVisible(True)
         self.display()
+
+    @pyqtSlot(str)
+    def showGameOver(self, player):
+        print("WHAT WOT?")
+        self.gameOverWidget = GameOverWidget(player)
+        self.gameOverWidget.ui.menuButton.clicked.connect(self.goToMenu)
+        self.gameOverWidget.ui.newGameButton.clicked.connect(self.goToGameWindow)
+        self.Stack.addWidget(self.gameOverWidget)
+        self.Stack.setCurrentWidget(self.gameOverWidget)
+
 
     def display(self):
         self.Stack.setCurrentIndex(self.currentWidget)
