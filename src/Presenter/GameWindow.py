@@ -48,29 +48,23 @@ class GameWindow(QtWidgets.QWidget):
         else:
             raise Exception(f'Player {player} does not supported')
 
-        # TODO
         gameArea.shuffleShips()
 
     def makeShot(self, controller, x, y):
-        log = logging.getLogger(__name__)
-
-        log.debug(f"{x}, {y}")
+        logger = logging.getLogger(__name__)
+        logger.debug(f"shot at point ({x}, {y})")
         if self.currentState == GameState.GAME:
             if self.currentPlayer == 2 and controller == self.ui.gameArea_1.controller:
                 isKeep, cellType = self.model_1.hit(x, y)
                 controller.accept(cellType)
                 self.next(isKeep)
-                self.ui.statusbar.showMessage(f'Стреляет игрок {self.currentPlayer} | Prev hot - {cellType.name}')
                 if self.model_1.isOver():
-                    self.ui.statusbar.showMessage(f'Игра закончена. Выиграл игрок 2')
                     self.gameOver()
             elif self.currentPlayer == 1 and controller == self.ui.gameArea_2.controller:
                 isKeep, cellType = self.model_2.hit(x, y)
                 controller.accept(cellType)
                 self.next(isKeep)
-                self.ui.statusbar.showMessage(f'Стреляет игрок {self.currentPlayer} | Prev hot - {cellType.name}')
                 if self.model_2.isOver():
-                    self.ui.statusbar.showMessage(f'Игра закончена. Выиграл игрок 1')
                     self.gameOver()
             else:
                 controller.decline()
@@ -172,7 +166,6 @@ class GameWindow(QtWidgets.QWidget):
             self.currentState = GameState.FIRST_PREPARE
             self.currentPlayer = random.randint(1, 2)
             self.preparePlayer(self.currentPlayer)
-            self.ui.statusbar.showMessage(f'Расставляет корабли игрок {self.currentPlayer}')
 
         elif self.currentState == GameState.FIRST_PREPARE:
             if not self.checkCountShips(self.currentPlayer):
@@ -180,22 +173,20 @@ class GameWindow(QtWidgets.QWidget):
             self.currentState = GameState.SECOND_PREPARE
             self.currentPlayer = 2 if self.currentPlayer == 1 else 1
             self.preparePlayer(self.currentPlayer)
-            self.ui.statusbar.showMessage(f'Расставляет корабли игрок {self.currentPlayer}')
 
         elif self.currentState == GameState.SECOND_PREPARE:
             if not self.checkCountShips(self.currentPlayer):
                 return
+            self.ui.statusbar.showMessage("")
             self.currentState = GameState.GAME
             self.currentPlayer = random.randint(1, 2)
             self.hideShipsAndButton()
             self.movePlayer(self.currentPlayer)
-            self.ui.statusbar.showMessage(f'Стреляет игрок {self.currentPlayer}')
 
         elif self.currentState == GameState.GAME:
             if not keepPlayer:
                 self.currentPlayer = 2 if self.currentPlayer == 1 else 1
             self.movePlayer(self.currentPlayer)
-            self.ui.statusbar.showMessage(f'Стреляет игрок {self.currentPlayer}')
 
         else:
             raise Exception(f'Unknown type: {self.currentState}')
