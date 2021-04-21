@@ -6,12 +6,14 @@ from enum import Enum
 from typing import Optional
 
 from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import QGraphicsBlurEffect
+from PyQt5.QtWidgets import QStackedWidget
 
 from Model.GameModel import GameModel
 from Presenter.GameArea import GameArea
-from Presenter.gamewindow_ui import Ui_GameWindow
+from Presenter.ui_gamewindow import Ui_GameWindow
 
 
 class States(Enum):
@@ -36,6 +38,10 @@ class GameWindow(QtWidgets.QWidget):
         self.model_1: Optional[GameModel] = None
         self.model_2: Optional[GameModel] = None
 
+        self.ui.buttonMyField.pressed.connect(self.myFieldPressed)
+        self.ui.buttonMyField.released.connect(self.myFieldReleased)
+
+
     def shuffleShips(self):
         gameArea: Optional[GameArea] = None
         if self.currentPlayer == 1:
@@ -52,7 +58,6 @@ class GameWindow(QtWidgets.QWidget):
 
     def makeShot(self, controller, x, y):
         log = logging.getLogger(__name__)
-
         log.debug(f"{x}, {y}")
         if self.currentState == States.GAME:
             if self.currentPlayer == 2 and controller == self.ui.gameArea_1.controller:
@@ -60,14 +65,14 @@ class GameWindow(QtWidgets.QWidget):
                 controller.accept(cellType)
                 self.next(isKeep)
                 self.ui.statusbar.showMessage(f'Стреляет игрок {self.currentPlayer} | Prev hot - {cellType.name}')
+                return
             elif self.currentPlayer == 1 and controller == self.ui.gameArea_2.controller:
                 isKeep, cellType = self.model_2.hit(x, y)
                 controller.accept(cellType)
                 self.next(isKeep)
                 self.ui.statusbar.showMessage(f'Стреляет игрок {self.currentPlayer} | Prev hot - {cellType.name}')
-        else:
-            controller.decline()
-
+                return
+        controller.decline()
 
 
     def mousePressEvent(self, event: QMouseEvent):
@@ -87,36 +92,29 @@ class GameWindow(QtWidgets.QWidget):
         self.ui.gameArea_2.hideShips()
         self.ui.buttonWidget.hide()
 
+    def showPlayer(self, player, label):
+        self.ui.stackedWidget.setCurrentIndex(player - 1)
+        self.ui.labelPlayer.setText(label)
+
+    def myFieldPressed(self):
+        self.showPlayer(player=self.currentPlayer, label="Your field")
+
+    def myFieldReleased(self):
+        if self.currentPlayer == 1:
+            self.showPlayer(player=2, label=f"Player {self.currentPlayer} attacks")
+        elif self.currentPlayer == 2:
+            self.showPlayer(player=1, label=f"Player {self.currentPlayer} attacks")
+        else:
+            raise Exception(f'Player {self.currentPlayer} does not supported')
+
     def preparePlayer(self, player: int):
-        if player == 1:
-            self.setWidgetsOnOff(isFirst=True)
-            self.ui.wigdetPlayer_2.hide()
-            self.ui.wigdetPlayer_1.show()
-
-        elif player == 2:
-            self.setWidgetsOnOff(isFirst=False)
-            self.ui.wigdetPlayer_1.hide()
-            self.ui.wigdetPlayer_2.show()
-
-        else:
+        self.showPlayer(player, f"Prepares player {player}")
+        if player not in [1, 2]:
             raise Exception(f'Player {player} does not supported')
 
-    def movePlayer(self, player: int):
-        self.ui.wigdetPlayer_1.show()
-        self.ui.wigdetPlayer_2.show()
-        if player == 1:
-            isFirst = False
-            effectWidget_1 = QGraphicsBlurEffect()
-            effectWidget_2 = None
-        elif player == 2:
-            isFirst = True
-            effectWidget_1 = None
-            effectWidget_2 = QGraphicsBlurEffect()
-        else:
-            raise Exception(f'Player {player} does not supported')
-        self.setWidgetsOnOff(isFirst=isFirst)
-        self.ui.wigdetPlayer_1.setGraphicsEffect(effectWidget_1)
-        self.ui.wigdetPlayer_2.setGraphicsEffect(effectWidget_2)
+    def movePlayer(self):
+        self.ui.buttonMyField.setEnabled(True)
+        self.myFieldReleased()
 
     def checkCountShips(self, player: int):
         gameArea: Optional[GameArea] = None
@@ -151,6 +149,7 @@ class GameWindow(QtWidgets.QWidget):
             raise Exception(f'Player {player} does not supported')
         return True
 
+
     def next(self, keepPlayer: bool = False):
         if keepPlayer and self.currentState in [States.INIT, States.FIRST_PREPARE, States.SECOND_PREPARE]:
             raise Exception(f'Impossible use [keep_player=True] while state is {self.currentState}')
@@ -175,13 +174,15 @@ class GameWindow(QtWidgets.QWidget):
             self.currentState = States.GAME
             self.currentPlayer = random.randint(1, 2)
             self.hideShipsAndButton()
-            self.movePlayer(self.currentPlayer)
+            self.movePlayer()
             self.ui.statusbar.showMessage(f'Стреляет игрок {self.currentPlayer}')
 
         elif self.currentState == States.GAME:
+            self.ui.stackedWidget.currentWidget().setEnabled(False)
             if not keepPlayer:
                 self.currentPlayer = 2 if self.currentPlayer == 1 else 1
-            self.movePlayer(self.currentPlayer)
+                QTimer.singleShot(500, Qt.PreciseTimer, self.movePlayer)
+            self.ui.stackedWidget.currentWidget().setEnabled(True)
             self.ui.statusbar.showMessage(f'Стреляет игрок {self.currentPlayer}')
 
         else:

@@ -366,6 +366,8 @@ class GameArea(QWidget):
         self.__scene.removeItem(self.__shipListItem)
         for _, ship in self.__shipList.items():
             self.__scene.removeItem(ship.shipItem)
+            self.__scene.removeItem(ship.counterItem)
+            self.__scene.removeItem(ship.counterText)
 
         self.__adjustedToSize = None
         resize = QResizeEvent(self.size(), self.size())
@@ -434,17 +436,17 @@ class GameArea(QWidget):
                     rot = rot.next()
                     cells = findPossibleCells(shipItem.length, rot)
 
+                if not cells:
+                    return
+
                 cell = random.choice(cells)
                 self.__placeShip(shipItem, cell.x(), cell.y(), rot)
 
 
     def resizeEvent(self, event):
+        print(event.size())
         size = event.size()
-        if size == self.__adjustedToSize:
-            return
-
-        self.__adjustedToSize = size
-
+        
         nowWidth = size.width()
         nowHeight = size.height()
 
@@ -453,14 +455,18 @@ class GameArea(QWidget):
 
         h_margin = round((nowWidth - width) / 2) - 2
         v_margin = round((nowHeight - height) / 2) - 2
+        self.resizeScene(width, height)
 
+        # if size == self.__adjustedToSize:
+        #     return
+        # self.__adjustedToSize = size
         self.setContentsMargins(QMargins(h_margin, v_margin, h_margin, v_margin))
-        self.__resizeScene()
 
 
-    def __resizeScene(self):
-        width = self.__ui.graphicsView.width()
-        height = self.__ui.graphicsView.height()
+    def resizeScene(self, width, height):
+        print("resizeScene")
+        # width = self.__ui.graphicsView.width()
+        # height = self.__ui.graphicsView.height()
         self.__scene.setSceneRect(0, 0, width, height)
 
         self.tileSize = min(width / 11, height / (11 / self.__ratio))
@@ -523,6 +529,7 @@ class GameArea(QWidget):
         self.__shipListItem.setScale(self.__scaleFactor)
         self.__shipListItem.setPos(shipListX, shipListY)
         self.__ghostShip.setScale(self.__scaleFactor)
+        self.repaint()
 
 
     def eventFilter(self, obj, event):

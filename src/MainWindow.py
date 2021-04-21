@@ -41,7 +41,7 @@ class MainWindow(QMainWindow):
         self.toolbar.addAction(self.menuButton)
         self.toolbar.setMovable(False)
 
-        self.setGeometry(0, 0, 800, 600)
+        self.setGeometry(0, 0, 600, 800)
         self.setWindowTitle('Морской бой')
         self.show()
 

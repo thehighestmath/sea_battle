@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1000</width>
-    <height>600</height>
+    <width>483</width>
+    <height>647</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -28,69 +28,60 @@
   <property name="styleSheet">
    <string notr="true"/>
   </property>
-  <layout class="QGridLayout" name="gridLayout" rowminimumheight="0,0,0,0,0">
-   <item row="0" column="0">
+  <layout class="QVBoxLayout" name="verticalLayout_3">
+   <item>
     <widget class="QWidget" name="centralWidget" native="true">
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="1" column="0">
-       <widget class="QWidget" name="wigdetPlayer_1" native="true">
-        <layout class="QVBoxLayout" name="verticalLayout" stretch="0,9">
-         <item>
-          <widget class="QLabel" name="labelPlayer_1">
-           <property name="font">
-            <font>
-             <pointsize>14</pointsize>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Player 1</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="GameArea" name="gameArea_1" native="true"/>
-         </item>
-        </layout>
+      <item row="1" column="1">
+       <widget class="QStackedWidget" name="stackedWidget">
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="GameArea" name="gameArea_1"/>
+        <widget class="GameArea" name="gameArea_2"/>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QWidget" name="wigdetPlayer_2" native="true">
-        <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,9">
-         <item>
-          <widget class="QLabel" name="labelPlayer_2">
-           <property name="font">
-            <font>
-             <pointsize>14</pointsize>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Player 2</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="GameArea" name="gameArea_2" native="true"/>
-         </item>
-        </layout>
-       </widget>
+      <item row="0" column="1">
+       <layout class="QHBoxLayout" name="header">
+        <item>
+         <widget class="QPushButton" name="menuButton">
+          <property name="text">
+           <string>Back to Menu</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="labelPlayer">
+          <property name="font">
+           <font>
+            <pointsize>14</pointsize>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Player 1</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="buttonMyField">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>My Field</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
    </item>
-   <item row="4" column="0">
-    <widget class="QStatusBar" name="statusbar"/>
-   </item>
-   <item row="3" column="0">
+   <item>
     <widget class="QWidget" name="buttonWidget" native="true">
      <layout class="QHBoxLayout" name="buttonLayout">
       <item>
@@ -153,6 +144,9 @@
       </item>
      </layout>
     </widget>
+   </item>
+   <item>
+    <widget class="QStatusBar" name="statusbar"/>
    </item>
   </layout>
   <action name="actionPreparePlayer_1">
