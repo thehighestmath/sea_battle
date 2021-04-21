@@ -1,5 +1,7 @@
 from enum import IntEnum
-from PyQt5.QtCore import pyqtSlot, QEvent
+
+from PyQt5 import QtGui
+from PyQt5.QtCore import pyqtSlot, QEvent, Qt, QCoreApplication
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QStackedWidget, QAction
 
 from Presenter.GameWindow import GameWindow
@@ -16,6 +18,11 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super(MainWindow, self).__init__()
+        self.setStyleSheet('''
+            background-color: #b3e6ff;
+        ''')
+
+        self.setWindowFlags(Qt.FramelessWindowHint)
 
         self.menu = InitWidget()
         self.gameWindow = GameWindow()
@@ -29,23 +36,31 @@ class MainWindow(QMainWindow):
         self.Stack.addWidget(self.gameWindow)
         self.setCentralWidget(self.Stack)
 
-        self.menuButton = QPushButton("Вернуться в меню")
-        self.menuButton.clicked.connect(self.goToMenu)
-        self.menuButton.setVisible(False)
+        # self.menuButton = QPushButton("Вернуться в меню")
+        # self.menuButton.clicked.connect(self.goToMenu)
+        # self.menuButton.setVisible(False)
 
         self.menuButton = QAction()
         self.menuButton.setText('Вернуться в меню')
         self.menuButton.triggered.connect(self.goToMenu)
         self.menuButton.setVisible(False)
 
+        self.quitButton = QAction()
+        self.quitButton.setText('Выйти')
+        self.quitButton.triggered.connect(self.quit)
+        self.quitButton.setVisible(True)
+
         self.toolbar = self.addToolBar('toolbar')
         self.toolbar.addAction(self.menuButton)
+        self.toolbar.addAction(self.quitButton)
         self.toolbar.setMovable(False)
 
         self.setGeometry(0, 0, 800, 600)
         self.setWindowTitle('Морской бой')
         self.show()
 
+        self.mLastMousePosition = None
+        self.mMoving = None
         self.gameOverWidget = None
 
     @pyqtSlot()
@@ -77,3 +92,19 @@ class MainWindow(QMainWindow):
 
     def display(self):
         self.Stack.setCurrentIndex(self.currentWidget)
+
+    def quit(self):
+        QCoreApplication.quit()
+
+    def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.mMoving = True
+            self.mLastMousePosition = event.pos()
+
+    def mouseMoveEvent(self, event: QtGui.QMouseEvent) -> None:
+        if self.mMoving:
+            self.move(self.pos() + event.pos() - self.mLastMousePosition)
+
+    def mouseReleaseEvent(self, event: QtGui.QMouseEvent) -> None:
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.mMoving = False
