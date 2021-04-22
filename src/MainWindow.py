@@ -36,25 +36,6 @@ class MainWindow(QMainWindow):
         self.Stack.addWidget(self.gameWindow)
         self.setCentralWidget(self.Stack)
 
-        # self.menuButton = QPushButton("Вернуться в меню")
-        # self.menuButton.clicked.connect(self.goToMenu)
-        # self.menuButton.setVisible(False)
-
-        self.menuButton = QAction()
-        self.menuButton.setText('Вернуться в меню')
-        self.menuButton.triggered.connect(self.goToMenu)
-        self.menuButton.setVisible(False)
-
-        self.quitButton = QAction()
-        self.quitButton.setText('Выйти')
-        self.quitButton.triggered.connect(self.quit)
-        self.quitButton.setVisible(True)
-
-        self.toolbar = self.addToolBar('toolbar')
-        self.toolbar.addAction(self.menuButton)
-        self.toolbar.addAction(self.quitButton)
-        self.toolbar.setMovable(False)
-
         self.setGeometry(0, 0, 800, 600)
         self.setWindowTitle('Морской бой')
         self.show()
@@ -63,10 +44,11 @@ class MainWindow(QMainWindow):
         self.mMoving = None
         self.gameOverWidget = None
 
-    @pyqtSlot()
+    # @pyqtSlot()
     def goToMenu(self):
+        print("MENU")
         self.currentWidget = DisplayedWidget.MENU
-        self.menuButton.setVisible(False)
+        # self.menuButton.setVisible(False)
         self.display()
 
     @pyqtSlot()
@@ -75,9 +57,9 @@ class MainWindow(QMainWindow):
 
         self.gameWindow = GameWindow()
         self.gameWindow.gameOverSignal.connect(self.showGameOver)
+        self.gameWindow.toMenuSignal.connect(self.goToMenu)
         self.Stack.insertWidget(DisplayedWidget.GAME, self.gameWindow)
         
-        self.menuButton.setVisible(True)
         self.display()
 
     @pyqtSlot(str)

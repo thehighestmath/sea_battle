@@ -3,6 +3,7 @@ import os
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap, QTransform
 
@@ -30,6 +31,7 @@ class InitWidget(QtWidgets.QWidget):
         self.ui.PVE.clicked.connect(self.PvsAI)
         self.ui.PVP.clicked.connect(self.PvsP)
         self.ui.highscoreTable.clicked.connect(self.showHST)
+        self.ui.exit.clicked.connect(lambda _: QCoreApplication.quit())
 
     def PvsAI(self):
         self.PvAISignal.emit()
