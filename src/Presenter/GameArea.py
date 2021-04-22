@@ -287,6 +287,7 @@ class GameArea(QWidget):
             ship.shipItem.setPixmap(QPixmap.fromImage(ship.image).transformed(t))
             ship.shipItem.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
             ship.counterItem.setPixmap(QPixmap.fromImage(self.__counterImage))
+            ship.counterItem.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
             ship.counterText.setPlainText(str(ship.count))
             ship.counterText.setFont(font)
             self.__scene.addItem(ship.shipItem)
@@ -321,6 +322,7 @@ class GameArea(QWidget):
         sprite.setSpriteMap(spritePixmap, 60, 60, 5)
         sprite.setScale(self.__scaleFactor)
         sprite.setPos((x + 1) * self.tileSize, (y + 1) * self.tileSize)
+        sprite.setZValue(10)
 
         self.__spriteAnimations.append(sprite)
         self.__scene.addItem(sprite)
@@ -718,6 +720,10 @@ class GameArea(QWidget):
                         if ship.isUnderMouse():
                             rotation = ship.data(0)
                             shipListItem = ship.data(1)
+
+                            if shipListItem.count == 0:
+                                shipListItem.shipItem.setGraphicsEffect(None)
+
                             shipListItem.count += 1
                             shipListItem.counterText.setPlainText(str(shipListItem.count))
                             shipUnderMouse = shipListItem
@@ -780,6 +786,18 @@ class GameArea(QWidget):
         elif hit_type in [CellState.MISS]:
             self.__setCell(x, y, 'miss')
             self.__runAnimation(x, y, "splash", looped=False)
+        
+        if hit_type == CellState.KILLED:
+            for ship in self.__placedShips:
+                rotation = ship.data(0)
+                length = ship.data(1).length
+                position = ship.data(2)
+                width = 1 if rotation.isVertical() else length
+                height = length if rotation.isVertical() else 1
+                rect = QRect(position.x(), position.y(), width, height)
+                if rect.contains(x, y):
+                    self.__scene.addItem(ship)
+
 
 
     def __decline(self, x, y):

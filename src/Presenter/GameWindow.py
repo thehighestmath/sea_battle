@@ -20,7 +20,7 @@ import Environment
 
 from Presenter.ui_gamewindow import Ui_GameWindow
 
-DEBUG = True
+DEBUG = False
 
 class GameState(IntEnum):
     INIT = 0
