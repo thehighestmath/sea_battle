@@ -38,7 +38,6 @@ class MainWindow(QMainWindow):
 
         self.setGeometry(0, 0, 800, 600)
         self.setWindowTitle('Морской бой')
-        self.show()
 
         self.mLastMousePosition = None
         self.mMoving = None

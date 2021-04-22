@@ -68,6 +68,7 @@ max-width: 150px;
 font-size: 20px;
 padding: 10px 20px;
 border-radius: 10px;
+color: black;
 }
 
 QPushButton:hover{
@@ -81,6 +82,9 @@ background: #bbb
         </item>
         <item>
          <widget class="QPushButton" name="PVE">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="styleSheet">
            <string notr="true">QPushButton{
 background: white;
@@ -90,10 +94,17 @@ max-width: 150px;
 font-size: 20px;
 padding: 10px 20px;
 border-radius: 10px;
+color: black;
 }
 
 QPushButton:hover{
 background: #bbb
+}
+
+QPushButton:disabled{
+background: #ccc;
+border-color: #bbb;
+color: #999;
 }</string>
           </property>
           <property name="text">
@@ -107,6 +118,9 @@ background: #bbb
        <layout class="QHBoxLayout" name="highscoreTableLayout">
         <item>
          <widget class="QPushButton" name="highscoreTable">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="layoutDirection">
            <enum>Qt::LeftToRight</enum>
           </property>
@@ -119,10 +133,17 @@ max-width: 378px;
 font-size: 20px;
 padding: 10px 20px;
 border-radius: 10px;
+color: black;
 }
 
 QPushButton:hover{
 background: #bbb
+}
+
+QPushButton:disabled{
+background: #ccc;
+border-color: #bbb;
+color: #999;
 }</string>
           </property>
           <property name="text">
@@ -145,6 +166,7 @@ max-width: 378px;
 font-size: 20px;
 padding: 10px 20px;
 border-radius: 10px;
+color: black;
 }
 
 QPushButton:hover{

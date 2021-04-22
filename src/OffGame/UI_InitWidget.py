@@ -42,6 +42,7 @@ class Ui_InitWidget(object):
 "font-size: 20px;\n"
 "padding: 10px 20px;\n"
 "border-radius: 10px;\n"
+"color: black;\n"
 "}\n"
 "\n"
 "QPushButton:hover{\n"
@@ -50,6 +51,7 @@ class Ui_InitWidget(object):
         self.PVP.setObjectName("PVP")
         self.startGameLayout.addWidget(self.PVP)
         self.PVE = QtWidgets.QPushButton(self.layoutWidget)
+        self.PVE.setEnabled(False)
         self.PVE.setStyleSheet("QPushButton{\n"
 "background: white;\n"
 "border: none;\n"
@@ -58,10 +60,17 @@ class Ui_InitWidget(object):
 "font-size: 20px;\n"
 "padding: 10px 20px;\n"
 "border-radius: 10px;\n"
+"color: black;\n"
 "}\n"
 "\n"
 "QPushButton:hover{\n"
 "background: #bbb\n"
+"}\n"
+"\n"
+"QPushButton:disabled{\n"
+"background: #ccc;\n"
+"border-color: #bbb;\n"
+"color: #999;\n"
 "}")
         self.PVE.setObjectName("PVE")
         self.startGameLayout.addWidget(self.PVE)
@@ -69,6 +78,7 @@ class Ui_InitWidget(object):
         self.highscoreTableLayout = QtWidgets.QHBoxLayout()
         self.highscoreTableLayout.setObjectName("highscoreTableLayout")
         self.highscoreTable = QtWidgets.QPushButton(self.layoutWidget)
+        self.highscoreTable.setEnabled(False)
         self.highscoreTable.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.highscoreTable.setStyleSheet("QPushButton{\n"
 "background: white;\n"
@@ -78,10 +88,17 @@ class Ui_InitWidget(object):
 "font-size: 20px;\n"
 "padding: 10px 20px;\n"
 "border-radius: 10px;\n"
+"color: black;\n"
 "}\n"
 "\n"
 "QPushButton:hover{\n"
 "background: #bbb\n"
+"}\n"
+"\n"
+"QPushButton:disabled{\n"
+"background: #ccc;\n"
+"border-color: #bbb;\n"
+"color: #999;\n"
 "}")
         self.highscoreTable.setObjectName("highscoreTable")
         self.highscoreTableLayout.addWidget(self.highscoreTable)
@@ -97,6 +114,7 @@ class Ui_InitWidget(object):
 "font-size: 20px;\n"
 "padding: 10px 20px;\n"
 "border-radius: 10px;\n"
+"color: black;\n"
 "}\n"
 "\n"
 "QPushButton:hover{\n"
