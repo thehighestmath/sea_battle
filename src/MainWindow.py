@@ -44,11 +44,9 @@ class MainWindow(QMainWindow):
         self.mMoving = None
         self.gameOverWidget = None
 
-    # @pyqtSlot()
+    @pyqtSlot()
     def goToMenu(self):
-        print("MENU")
         self.currentWidget = DisplayedWidget.MENU
-        # self.menuButton.setVisible(False)
         self.display()
 
     @pyqtSlot()
