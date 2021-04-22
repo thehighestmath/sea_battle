@@ -2,20 +2,25 @@ import logging
 import random
 import signal
 import sys
+import os
 from enum import IntEnum
 from typing import Optional
 
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QMouseEvent
+from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import QGraphicsBlurEffect
 
 from Model.GameModel import GameModel
 from Presenter.GameArea import GameArea
-from Presenter.gamewindow_ui import Ui_GameWindow
+
+# inner project imports
+import Environment
+
+from Presenter.ui_gamewindow import Ui_GameWindow
 
 DEBUG = True
-
 
 class GameState(IntEnum):
     INIT = 0
@@ -27,11 +32,20 @@ class GameState(IntEnum):
 
 class GameWindow(QtWidgets.QWidget):
     gameOverSignal = pyqtSignal(str)
+    toMenuSignal = pyqtSignal()
 
     def __init__(self, parent=None):
         super(GameWindow, self).__init__(parent)
         self.ui = Ui_GameWindow()
         self.ui.setupUi(self)
+
+        resourcePath = Environment.Resources.path()
+        imagePath = os.path.join(resourcePath, "img", "miscellaneous", "logout.png")
+        icon = QIcon(QPixmap(imagePath))
+        self.ui.menu.setIcon(icon)
+        self.ui.menu.clicked.connect(lambda _: self.toMenuSignal.emit())
+        # self.ui.menu.setIconSize()
+
         self.ui.gameArea_1.controller.hit.connect(self.makeShot)
         self.ui.gameArea_2.controller.hit.connect(self.makeShot)
         self.ui.finishSettingShips.clicked.connect(self.next)
