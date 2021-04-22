@@ -322,6 +322,7 @@ class GameArea(QWidget):
         sprite.setSpriteMap(spritePixmap, 60, 60, 5)
         sprite.setScale(self.__scaleFactor)
         sprite.setPos((x + 1) * self.tileSize, (y + 1) * self.tileSize)
+        sprite.setZValue(10)
 
         self.__spriteAnimations.append(sprite)
         self.__scene.addItem(sprite)
@@ -785,6 +786,18 @@ class GameArea(QWidget):
         elif hit_type in [CellState.MISS]:
             self.__setCell(x, y, 'miss')
             self.__runAnimation(x, y, "splash", looped=False)
+        
+        if hit_type == CellState.KILLED:
+            for ship in self.__placedShips:
+                rotation = ship.data(0)
+                length = ship.data(1).length
+                position = ship.data(2)
+                width = 1 if rotation.isVertical() else length
+                height = length if rotation.isVertical() else 1
+                rect = QRect(position.x(), position.y(), width, height)
+                if rect.contains(x, y):
+                    self.__scene.addItem(ship)
+
 
 
     def __decline(self, x, y):
