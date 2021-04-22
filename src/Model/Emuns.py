@@ -1,6 +1,24 @@
 from enum import IntEnum
 
 
+class DisplayedWidget(IntEnum):
+    MENU = 0
+    GAME = 1
+
+
+class GameState(IntEnum):
+    INIT = 0
+    FIRST_PREPARE = 1
+    SECOND_PREPARE = 2
+    GAME = 3
+    GAME_OVER = 4
+
+
+class GameMode(IntEnum):
+    PVP = 0
+    PVE = 1
+
+
 class CellState(IntEnum):
     FREE = 0
     OCCUPIED = 1

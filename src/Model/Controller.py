@@ -13,6 +13,10 @@ class Controller(QObject):
     def __init__(self):
         super(Controller, self).__init__()
         self.__lastHit = deque()
+        self.isBot = False
+
+    def onBot(self):
+        self.isBot = True
 
     def emitHit(self, x, y):
         log.debug(f"emit hit on ({x}, {y})")
