@@ -59,8 +59,9 @@ class AI(QObject):
         self.weight = [[1 for _ in range(AI.SIZE)] for _ in range(AI.SIZE)]
         if self.countMisses % gameLevel == 0:
             xOccupied, yOccupied = self.getNextOccupiedCell()
-            if xOccupied and yOccupied:
+            if xOccupied is not None and yOccupied is not None:
                 self.weight[xOccupied][yOccupied] *= 40
+                self.countMisses += 1
         for x in range(AI.SIZE):
             for y in range(AI.SIZE):
                 if self.model.getCell(x, y) in [CellState.MISS, CellState.KILLED, CellState.HIT]:
