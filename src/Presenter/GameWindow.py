@@ -64,7 +64,7 @@ class GameWindow(QtWidgets.QWidget):
             gameArea = self.ui.gameArea_2
 
         else:
-            raise Exception(f'Player {player} does not supported')
+            raise Exception(f'Player {self.currentPlayer} does not supported')
 
         gameArea.shuffleShips()
 

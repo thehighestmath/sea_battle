@@ -5,7 +5,7 @@ from typing import Optional, List
 from PyQt5.QtCore import QObject, QPoint
 
 from Model.Controller import Controller
-from Model.Emuns import CellState
+from Model.Emuns import CellState, GameLevel
 from Model.GameModel import GameModel
 from Presenter.GameArea import Ship
 
@@ -20,6 +20,9 @@ class AI(QObject):
         self.model: Optional[GameModel] = None
         self.killedCells = deque()
         self.weight: Optional[List[List[int]]] = None
+
+        self.countMisses = 1
+
         self.enemyShips = [1, 1, 1, 1, 2, 2, 2, 3, 3, 4]
 
     def removeCells(self, ship: Ship):
@@ -52,9 +55,12 @@ class AI(QObject):
         self.model = model
         self.model.shipKilled.connect(self.removeCells)
 
-    def recalculateWeightMap(self):
+    def recalculateWeightMap(self, gameLevel):
         self.weight = [[1 for _ in range(AI.SIZE)] for _ in range(AI.SIZE)]
-
+        if self.countMisses % gameLevel == 0:
+            xOccupied, yOccupied = self.getNextOccupiedCell()
+            if xOccupied and yOccupied:
+                self.weight[xOccupied][yOccupied] *= 40
         for x in range(AI.SIZE):
             for y in range(AI.SIZE):
                 if self.model.getCell(x, y) in [CellState.MISS, CellState.KILLED, CellState.HIT]:
@@ -137,10 +143,19 @@ class AI(QObject):
 
         return weights[maxWeight]
 
-    def makeShot(self):
-        self.recalculateWeightMap()
+    def getNextOccupiedCell(self):
+        for x in range(AI.SIZE):
+            for y in range(AI.SIZE):
+                if self.model.getCell(x, y) == CellState.OCCUPIED:
+                    return x, y
+        return None, None
+
+    def makeShot(self, gameLevel=GameLevel.HARD):
+        self.recalculateWeightMap(gameLevel)
         x, y = choice(self.getMaxWeightCells())
         cell = {'x': x, 'y': y}
+        if self.model.getCell(**cell) == CellState.FREE:
+            self.countMisses += 1
         self.controller.emitHit(**cell)
 
 

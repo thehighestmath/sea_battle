@@ -34,3 +34,13 @@ class CellState(IntEnum):
 
     def __repr__(self):
         return str(self.value)
+
+
+class GameLevel(IntEnum):
+    """
+    every N turns AI will found you occupied cell
+    """
+    EASY = 20
+    MEDIUM = 10
+    HARD = 3
+
