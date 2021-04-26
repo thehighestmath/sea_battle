@@ -402,7 +402,6 @@ class GameArea(QWidget):
         self.__placedShips.clear()
 
 
-
     def shuffleShips(self):
         if self.__shipListItem.scene() is None:
             return

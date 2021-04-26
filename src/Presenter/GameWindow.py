@@ -19,8 +19,7 @@ from Model.GameModel import GameModel
 from Presenter.GameArea import GameArea
 from Presenter.ui_gamewindow import Ui_GameWindow
 
-DEBUG = True
-
+DEBUG = False
 
 
 class GameWindow(QtWidgets.QWidget):
@@ -147,7 +146,7 @@ class GameWindow(QtWidgets.QWidget):
                 effectWidget_1 = None
                 effectWidget_2 = QGraphicsBlurEffect()
             if self.gameMode == GameMode.PVE:
-                QTimer.singleShot(500, self.ai.randomShot)
+                QTimer.singleShot(500, self.ai.makeShot)
                 isFirst = False
         else:
             raise Exception(f'Player {player} does not supported')
