@@ -21,6 +21,7 @@ class WidgetType(IntEnum):
 class PlayerNamesWidget(QtWidgets.QWidget):
 
     StartSignal = pyqtSignal()
+    MenuSignal = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -28,6 +29,7 @@ class PlayerNamesWidget(QtWidgets.QWidget):
         self.ui.setupUi(self)
 
         self.ui.pushButton.clicked.connect(self.start)
+        self.ui.pushButton_2.clicked.connect(self.menu)
 
     def prepareWidget(self, mode: IntEnum):
         self.ui.lineEdit.clear()
@@ -36,19 +38,22 @@ class PlayerNamesWidget(QtWidgets.QWidget):
         if mode == WidgetType.PvP:
             self.ui.label_3.setVisible(True)
             self.ui.lineEdit_2.setVisible(True)
-            self.ui.label.setText("Enter player names")
-            self.ui.label_2.setText("Player 1")
+            self.ui.label.setText("Введите имена игроков")
+            self.ui.label_2.setText("Игрок 1:")
         if mode == WidgetType.PvE:
             self.ui.label_3.setVisible(False)
             self.ui.lineEdit_2.setVisible(False)
-            self.ui.label.setText("Enter player name")
-            self.ui.label_2.setText("Player:")
+            self.ui.label.setText("Введите имя игрока")
+            self.ui.label_2.setText("Игрок:")
 
     def start(self, mode: IntEnum):
         if mode == WidgetType.PvP and self.ui.lineEdit_2.text() == '' or \
                 self.ui.lineEdit.text() == '':
             return
         self.StartSignal.emit()
+
+    def menu(self):
+        self.MenuSignal.emit()
 
 
 if __name__ == '__main__':

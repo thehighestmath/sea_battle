@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import QMainWindow, QPushButton, QStackedWidget, QAction
 from Presenter.GameWindow import GameWindow
 from OffGame.InitWidget import InitWidget
 from OffGame.GameOverWidget import GameOverWidget
+from OffGame.PlayerNamesWidget import PlayerNamesWidget, WidgetType
 
 
 class DisplayedWidget(IntEnum):
@@ -27,9 +28,10 @@ class MainWindow(QMainWindow):
         self.menu = InitWidget()
         self.gameWindow = GameWindow()
         self.currentWidget = DisplayedWidget.MENU
+        self.mode = WidgetType.PvP
 
-        self.menu.PvAISignal.connect(self.goToGameWindow)
-        self.menu.PvPSignal.connect(self.goToGameWindow)
+        self.menu.PvAISignal.connect(self.goToNames)
+        self.menu.PvPSignal.connect(self.goToNames)
 
         self.Stack = QStackedWidget(self)
         self.Stack.addWidget(self.menu)
@@ -42,6 +44,16 @@ class MainWindow(QMainWindow):
         self.mLastMousePosition = None
         self.mMoving = None
         self.gameOverWidget = None
+        self.playerNamesWidget = None
+
+    @pyqtSlot(WidgetType)
+    def goToNames(self, mode):
+        self.playerNamesWidget = PlayerNamesWidget()
+        self.playerNamesWidget.prepareWidget(mode)
+        self.playerNamesWidget.StartSignal.connect(self.goToGameWindow)
+        self.playerNamesWidget.MenuSignal.connect(self.goToMenu)
+        self.Stack.addWidget(self.playerNamesWidget)
+        self.Stack.setCurrentWidget(self.playerNamesWidget)
 
     @pyqtSlot()
     def goToMenu(self):
