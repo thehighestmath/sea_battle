@@ -409,7 +409,6 @@ class GameArea(QWidget):
             return False
 
         def scanFinisedCallback():
-            print("adsadasd")
             self.__scene.removeItem(self.__scanEffect)
             del self.__scanEffect
             self.__scanEffect = None
