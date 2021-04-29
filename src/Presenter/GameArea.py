@@ -746,6 +746,11 @@ class GameArea(QWidget):
         if hit_type in [CellState.HIT, CellState.KILLED]:
             self.__setCell(x, y, 'hit')
             self.__runAnimation(x, y, "explosion", looped=True)
+            for target in self.__targets:
+                if (x, y) == target.data(0):
+                    self.__scene.removeItem(target)
+                    self.__targets.remove(target)
+                    break
         elif hit_type in [CellState.MISS]:
             self.__setCell(x, y, 'miss')
             self.__runAnimation(x, y, "splash", looped=False)
