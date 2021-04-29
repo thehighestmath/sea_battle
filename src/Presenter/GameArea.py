@@ -147,9 +147,6 @@ class GameArea(QWidget):
         self.__initGraphicsView()
         self.__adjustedToSize = 0
 
-        self.scanEffect(0, 0)
-        
-
     def serviceModel(self, game_model):
         self.removeModel()
         self.__gameModel = game_model
