@@ -1,16 +1,15 @@
-import sys
-import os
 import logging
+import os
+import sys
 
-from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QPixmap, QFont
-
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QWidget
 
 # inner project imports
 import Environment
-
 from OffGame.ui_GameOverWidget import Ui_GameOverWidget
+
 
 class GameOverWidget(QWidget):
     def __init__(self, player, parent=None):
@@ -25,8 +24,8 @@ class GameOverWidget(QWidget):
         font = QFont("Roboto")
         font.setPixelSize(25)
         self.ui.label.setFont(font)
-        self.ui.label.setText(f"Выиграл игрок {player}!")
-        
+        self.ui.label.setText(f"Выиграл {player}!")
+
         self.ui.image.setPixmap(pixmap)
 
 

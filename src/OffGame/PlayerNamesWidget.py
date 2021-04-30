@@ -1,14 +1,8 @@
 import sys
-import os
 from enum import IntEnum
+
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtCore import QCoreApplication
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QPixmap, QTransform
-
-# inner project imports
-import Environment
 
 from OffGame.UI_PlayerNames import UI_PlayerNames
 
@@ -19,9 +13,8 @@ class WidgetType(IntEnum):
 
 
 class PlayerNamesWidget(QtWidgets.QWidget):
-
-    StartSignal = pyqtSignal()
-    MenuSignal = pyqtSignal()
+    startSignal = pyqtSignal(str, str)
+    menuSignal = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -40,6 +33,7 @@ class PlayerNamesWidget(QtWidgets.QWidget):
             self.ui.lineEdit_2.setVisible(True)
             self.ui.label.setText("Введите имена игроков")
             self.ui.label_2.setText("Игрок 1:")
+
         if mode == WidgetType.PvE:
             self.ui.label_3.setVisible(False)
             self.ui.lineEdit_2.setVisible(False)
@@ -47,19 +41,23 @@ class PlayerNamesWidget(QtWidgets.QWidget):
             self.ui.label_2.setText("Игрок:")
 
     def start(self, mode: IntEnum):
-        if mode == WidgetType.PvP and self.ui.lineEdit_2.text() == '' or \
-                self.ui.lineEdit.text() == '':
-            return
-        self.StartSignal.emit()
+        if mode == WidgetType.PvP:
+            if self.ui.lineEdit_2.text() == '' or self.ui.lineEdit.text() == '':
+                return
+            self.startSignal.emit(self.ui.lineEdit.text(), self.ui.lineEdit_2.text())
+        if mode == WidgetType.PvE:
+            if self.ui.lineEdit.text() == '':
+                return
+            self.startSignal.emit(self.ui.lineEdit.text(), 'OpenAI')
 
     def menu(self):
-        self.MenuSignal.emit()
+        self.menuSignal.emit()
 
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     widget = PlayerNamesWidget()
-#    widget.prepareWidget(WidgetType.PvE)
+    #    widget.prepareWidget(WidgetType.PvE)
     widget.prepareWidget(WidgetType.PvP)
     widget.show()
     app.exec_()

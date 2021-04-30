@@ -26,7 +26,7 @@ class MainWindow(QMainWindow):
         self.setWindowFlags(Qt.FramelessWindowHint)
 
         self.menu = InitWidget()
-        self.gameWindow = GameWindow()
+        self.gameWindow = GameWindow('', '')
         self.currentWidget = DisplayedWidget.MENU
         self.mode = WidgetType.PvP
 
@@ -50,8 +50,8 @@ class MainWindow(QMainWindow):
     def goToNames(self, mode):
         self.playerNamesWidget = PlayerNamesWidget()
         self.playerNamesWidget.prepareWidget(mode)
-        self.playerNamesWidget.StartSignal.connect(self.goToGameWindow)
-        self.playerNamesWidget.MenuSignal.connect(self.goToMenu)
+        self.playerNamesWidget.startSignal.connect(self.goToGameWindow)
+        self.playerNamesWidget.menuSignal.connect(self.goToMenu)
         self.Stack.addWidget(self.playerNamesWidget)
         self.Stack.setCurrentWidget(self.playerNamesWidget)
 
@@ -60,11 +60,11 @@ class MainWindow(QMainWindow):
         self.currentWidget = DisplayedWidget.MENU
         self.display()
 
-    @pyqtSlot()
-    def goToGameWindow(self):
+    @pyqtSlot(str, str)
+    def goToGameWindow(self, player_1, player_2):
         self.currentWidget = DisplayedWidget.GAME
 
-        self.gameWindow = GameWindow()
+        self.gameWindow = GameWindow(player_1, player_2)
         self.gameWindow.gameOverSignal.connect(self.showGameOver)
         self.gameWindow.toMenuSignal.connect(self.goToMenu)
         self.Stack.insertWidget(DisplayedWidget.GAME, self.gameWindow)
@@ -73,13 +73,10 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot(str)
     def showGameOver(self, player):
-        print("WHAT WOT?")
         self.gameOverWidget = GameOverWidget(player)
         self.gameOverWidget.ui.menuButton.clicked.connect(self.goToMenu)
-        self.gameOverWidget.ui.newGameButton.clicked.connect(self.goToGameWindow)
         self.Stack.addWidget(self.gameOverWidget)
         self.Stack.setCurrentWidget(self.gameOverWidget)
-
 
     def display(self):
         self.Stack.setCurrentIndex(self.currentWidget)

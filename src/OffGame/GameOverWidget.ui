@@ -68,28 +68,6 @@ font-size: 20px;
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QPushButton" name="newGameButton">
-          <property name="styleSheet">
-           <string notr="true">QPushButton{
-background: white;
-border: none;
-border: 1px solid #bbb;
-max-width: 150px;
-font-size: 20px;
-padding: 10px 20px;
-border-radius: 10px;
-}
-
-QPushButton:hover{
-background: #bbb
-}</string>
-          </property>
-          <property name="text">
-           <string>Новая игра</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QPushButton" name="menuButton">
           <property name="styleSheet">
            <string notr="true">QPushButton{

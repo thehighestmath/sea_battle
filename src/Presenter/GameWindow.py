@@ -20,7 +20,7 @@ import Environment
 
 from Presenter.ui_gamewindow import Ui_GameWindow
 
-DEBUG = False
+DEBUG = True
 
 class GameState(IntEnum):
     INIT = 0
@@ -34,7 +34,7 @@ class GameWindow(QtWidgets.QWidget):
     gameOverSignal = pyqtSignal(str)
     toMenuSignal = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, player_1, player_2, parent=None):
         super(GameWindow, self).__init__(parent)
         self.ui = Ui_GameWindow()
         self.ui.setupUi(self)
@@ -46,6 +46,8 @@ class GameWindow(QtWidgets.QWidget):
         self.ui.menu.clicked.connect(lambda _: self.toMenuSignal.emit())
         # self.ui.menu.setIconSize()
 
+        self.ui.labelPlayer_1.setText(player_1)
+        self.ui.labelPlayer_2.setText(player_2)
         self.ui.gameArea_1.controller.hit.connect(self.makeShot)
         self.ui.gameArea_2.controller.hit.connect(self.makeShot)
         self.ui.finishSettingShips.clicked.connect(self.next)
@@ -66,7 +68,7 @@ class GameWindow(QtWidgets.QWidget):
             gameArea = self.ui.gameArea_2
 
         else:
-            raise Exception(f'Player {player} does not supported')
+            raise Exception(f'Player {self.currentPlayer} does not supported')
 
         gameArea.shuffleShips()
 
@@ -95,7 +97,13 @@ class GameWindow(QtWidgets.QWidget):
         logger = logging.getLogger(__name__)
         logger.debug(f"Игра окончена. Выиграл игрок {self.currentPlayer}")
         self.currentState = GameState.GAME_OVER
-        self.gameOverSignal.emit(f'Player {self.currentPlayer}')
+        if self.currentPlayer == 1:
+            player = self.ui.labelPlayer_1.text()
+        elif self.currentPlayer == 2:
+            player = self.ui.labelPlayer_2.text()
+        else:
+            raise Exception('Unknown player')
+        self.gameOverSignal.emit(player)
 
     def mousePressEvent(self, event: QMouseEvent):
         logger = logging.getLogger(__name__)

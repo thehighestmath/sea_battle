@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'c:\Git\sea_battle\src\OffGame\GameOverWidget.ui'
+# Form implementation generated from reading ui file 'GameOverWidget.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -39,22 +39,6 @@ class Ui_GameOverWidget(object):
         self.verticalLayout.addItem(spacerItem)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.newGameButton = QtWidgets.QPushButton(self.layoutWidget)
-        self.newGameButton.setStyleSheet("QPushButton{\n"
-"background: white;\n"
-"border: none;\n"
-"border: 1px solid #bbb;\n"
-"max-width: 150px;\n"
-"font-size: 20px;\n"
-"padding: 10px 20px;\n"
-"border-radius: 10px;\n"
-"}\n"
-"\n"
-"QPushButton:hover{\n"
-"background: #bbb\n"
-"}")
-        self.newGameButton.setObjectName("newGameButton")
-        self.horizontalLayout.addWidget(self.newGameButton)
         self.menuButton = QtWidgets.QPushButton(self.layoutWidget)
         self.menuButton.setStyleSheet("QPushButton{\n"
 "background: white;\n"
@@ -83,5 +67,4 @@ class Ui_GameOverWidget(object):
         _translate = QtCore.QCoreApplication.translate
         GameOverWidget.setWindowTitle(_translate("GameOverWidget", "Form"))
         self.label.setText(_translate("GameOverWidget", "DUMMY"))
-        self.newGameButton.setText(_translate("GameOverWidget", "Новая игра"))
         self.menuButton.setText(_translate("GameOverWidget", "Главное меню"))
