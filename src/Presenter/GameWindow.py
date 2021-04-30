@@ -151,17 +151,18 @@ class GameWindow(QtWidgets.QWidget):
                 }
             """)
             self.ui.buttonLayout.insertWidget(1, self.ui.scan)
-            
+
             self.ui.scan.cooldown = 0
             self.ui.scan.clicked.connect(lambda: self.scanBotArea())
         else:
-            raise Exception(f"Unknown state! self.gameMode is {self.gameMode}. Accepted {GameMode.PVP}, {GameMode.PVE}")  # wtf
+            raise Exception(
+                f"Unknown state! self.gameMode is {self.gameMode}. Accepted {GameMode.PVP}, {GameMode.PVE}")  # wtf
 
     def scanBotArea(self):
         cell = self.model_2.getRandomOccupedCell()
         if cell is None:
             return
-        
+
         if self.ui.gameArea_2.scanEffect(cell.x(), cell.y()):
             self.ui.scan.setEnabled(False)
             self.ui.scan.cooldown = 4
@@ -180,7 +181,6 @@ class GameWindow(QtWidgets.QWidget):
                     self.ui.scan.setText(f"  COOLDOWN...{self.ui.scan.cooldown}")
         except Exception:
             pass
-        
 
     def preparePlayer(self, player: int):
         if player == 1:
@@ -193,7 +193,6 @@ class GameWindow(QtWidgets.QWidget):
             self.ui.wigdetPlayer_1.hide()
             self.ui.wigdetPlayer_2.show()
             if self.gameMode == GameMode.PVE:
-                self.ui.labelPlayer_2.setText('Bot')
                 self.shuffleShips()
                 self.next()
         else:

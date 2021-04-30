@@ -1,15 +1,11 @@
 import sys
-from enum import IntEnum
+from typing import Optional
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
 
+from Model.Enums import GameMode
 from OffGame.UI_PlayerNames import UI_PlayerNames
-
-
-class WidgetType(IntEnum):
-    PvP = 0
-    PvE = 1
 
 
 class PlayerNamesWidget(QtWidgets.QWidget):
@@ -23,29 +19,31 @@ class PlayerNamesWidget(QtWidgets.QWidget):
 
         self.ui.pushButton.clicked.connect(self.start)
         self.ui.pushButton_2.clicked.connect(self.menu)
+        self.mode: Optional[GameMode] = None
 
-    def prepareWidget(self, mode: IntEnum):
+    def prepareWidget(self, mode: GameMode):
         self.ui.lineEdit.clear()
         self.ui.lineEdit_2.clear()
+        self.mode = mode
 
-        if mode == WidgetType.PvP:
+        if mode == GameMode.PVP:
             self.ui.label_3.setVisible(True)
             self.ui.lineEdit_2.setVisible(True)
             self.ui.label.setText("Введите имена игроков")
             self.ui.label_2.setText("Игрок 1:")
 
-        if mode == WidgetType.PvE:
+        if mode == GameMode.PVE:
             self.ui.label_3.setVisible(False)
             self.ui.lineEdit_2.setVisible(False)
             self.ui.label.setText("Введите имя игрока")
             self.ui.label_2.setText("Игрок:")
 
-    def start(self, mode: IntEnum):
-        if mode == WidgetType.PvP:
+    def start(self):
+        if self.mode == GameMode.PVP:
             if self.ui.lineEdit_2.text() == '' or self.ui.lineEdit.text() == '':
                 return
             self.startSignal.emit(self.ui.lineEdit.text(), self.ui.lineEdit_2.text())
-        if mode == WidgetType.PvE:
+        elif self.mode == GameMode.PVE:
             if self.ui.lineEdit.text() == '':
                 return
             self.startSignal.emit(self.ui.lineEdit.text(), 'OpenAI')
@@ -57,7 +55,7 @@ class PlayerNamesWidget(QtWidgets.QWidget):
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     widget = PlayerNamesWidget()
-    #    widget.prepareWidget(WidgetType.PvE)
-    widget.prepareWidget(WidgetType.PvP)
+    # widget.prepareWidget(WidgetType.PvE)
+    widget.prepareWidget(GameMode.PVP)
     widget.show()
     app.exec_()
