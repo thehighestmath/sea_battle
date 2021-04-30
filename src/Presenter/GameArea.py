@@ -19,11 +19,10 @@ from Model.Controller import Controller
 from Presenter.GraphcisItems.Sprite import SpriteItem
 from Presenter.GraphcisItems.FadingPixmap import FadingPixmapItem
 from Presenter.GraphcisItems.FloatingGradient import FloatingGradientItem
-from Model.CellState import CellState
+from Model.Enums import CellState
 
 # ui
 from Presenter.ui_GameArea import Ui_GameArea
-from Model.Emuns import CellState
 
 DEBUG_RESOURCE = ""
 log = logging.getLogger("GameArea")

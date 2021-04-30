@@ -8,8 +8,9 @@ from typing import List, Optional, Tuple
 from PyQt5.QtCore import QPoint, QObject, pyqtSignal
 from PyQt5.QtWidgets import QGraphicsPixmapItem
 
-from Model.Emuns import CellState
+from Model.Enums import CellState
 from Presenter.GameArea import Rotation, ShipListItem, Ship
+import Environment
 
 
 class GameModel(QObject):
@@ -74,7 +75,9 @@ class GameModel(QObject):
             # logger.warning('Coords of set must be in range [0, 10)')
             return None
         self.__matrix[y][x] = state
-        self.dumpMatrix()
+
+        if Environment.DEBUG:
+            self.dumpMatrix()
 
     def isOver(self) -> bool:
         """

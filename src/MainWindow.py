@@ -2,7 +2,7 @@ from PyQt5 import QtGui
 from PyQt5.QtCore import pyqtSlot, Qt, QCoreApplication
 from PyQt5.QtWidgets import QMainWindow, QStackedWidget
 
-from Model.Emuns import DisplayedWidget, GameMode
+from Model.Enums import DisplayedWidget, GameMode
 from OffGame.GameOverWidget import GameOverWidget
 from OffGame.InitWidget import InitWidget
 from Presenter.GameWindow import GameWindow

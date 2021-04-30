@@ -5,7 +5,7 @@ from typing import Optional, List
 from PyQt5.QtCore import QObject, QPoint
 
 from Model.Controller import Controller
-from Model.Emuns import CellState, GameLevel
+from Model.Enums import CellState, GameLevel
 from Model.GameModel import GameModel
 from Presenter.GameArea import Ship
 

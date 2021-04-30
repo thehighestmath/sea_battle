@@ -1,6 +1,7 @@
 import os
 import sys
 
+DEBUG = False
 
 class Root:
     @staticmethod
