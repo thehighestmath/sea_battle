@@ -49,6 +49,6 @@ if %errorlevel% neq 0 (
 echo OK
 
 echo run pyinstaller building:
-pyinstaller --clean --onefile --name Battleship --windowed --add-binary %SCRIPTPATH%\%RESOURCEPATH%;%RESOURCEPATH% --icon %SCRIPTPATH%\%RESOURCEPATH%\icon.ico %SCRIPTPATH%\src\main.py
+py -3 -m PyInstaller --clean --onefile --name Battleship --windowed --add-binary %SCRIPTPATH%\%RESOURCEPATH%;%RESOURCEPATH% --icon %SCRIPTPATH%\%RESOURCEPATH%\icon.ico %SCRIPTPATH%\src\main.py
 
 pause
