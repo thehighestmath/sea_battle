@@ -16,6 +16,11 @@ if __name__ == '__main__':
         format='%(asctime)s - %(levelname)s - %(module)s - %(funcName)s - %(lineno)d - %(message)s')
 
     app = QApplication(sys.argv)
+    app.setStyleSheet("""
+        QPushButton{
+            outline: none
+        }
+    """)
     QFontDatabase.addApplicationFont(os.path.join(Environment.Resources.path(), "fonts", "Roboto", "Roboto-Bold.ttf"))
     window = MainWindow()
     window.setGeometry(QStyle.alignedRect(
