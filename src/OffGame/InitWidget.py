@@ -1,15 +1,14 @@
-import sys
 import os
+import sys
 
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtCore import Qt
+from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QPixmap, QTransform
 
 # inner project imports
 import Environment
-
 from OffGame.UI_InitWidget import Ui_InitWidget
 from OffGame.PlayerNamesWidget import WidgetType
 
@@ -17,6 +16,7 @@ from OffGame.PlayerNamesWidget import WidgetType
 class InitWidget(QtWidgets.QWidget):
     PvAISignal = pyqtSignal(WidgetType)
     PvPSignal = pyqtSignal(WidgetType)
+
     showHSTSignal = pyqtSignal()
 
     def __init__(self):
