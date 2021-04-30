@@ -9,12 +9,14 @@ from PyQt5.QtGui import QPixmap, QTransform
 
 # inner project imports
 import Environment
+from Model.Enums import GameMode
 from OffGame.UI_InitWidget import Ui_InitWidget
 
 
 class InitWidget(QtWidgets.QWidget):
-    PvAISignal = pyqtSignal()
-    PvPSignal = pyqtSignal()
+    PvAISignal = pyqtSignal(GameMode)
+    PvPSignal = pyqtSignal(GameMode)
+
     showHSTSignal = pyqtSignal()
 
     def __init__(self):
@@ -34,10 +36,10 @@ class InitWidget(QtWidgets.QWidget):
         self.ui.exit.clicked.connect(lambda _: QCoreApplication.quit())
 
     def PvsAI(self):
-        self.PvAISignal.emit()
+        self.PvAISignal.emit(GameMode.PVE)
 
     def PvsP(self):
-        self.PvPSignal.emit()
+        self.PvPSignal.emit(GameMode.PVP)
 
     def showHST(self):
         self.showHSTSignal.emit()

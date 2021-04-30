@@ -24,7 +24,7 @@ class GameOverWidget(QWidget):
         font = QFont("Roboto")
         font.setPixelSize(25)
         self.ui.label.setFont(font)
-        self.ui.label.setText(f"Выиграл игрок {player}!")
+        self.ui.label.setText(f"Выиграл {player}!")
 
         self.ui.image.setPixmap(pixmap)
 
