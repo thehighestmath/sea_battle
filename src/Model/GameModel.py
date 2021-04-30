@@ -7,7 +7,7 @@ from typing import List, Optional, Tuple
 from PyQt5.QtCore import QPoint, QObject, pyqtSignal
 from PyQt5.QtWidgets import QGraphicsPixmapItem
 
-from Model.CellState import CellState
+from Model.Emuns import CellState
 from Presenter.GameArea import Rotation, ShipListItem, Ship
 
 
@@ -47,7 +47,7 @@ class GameModel(QObject):
             for j in range(10):
                 self.__matrix[i][j] = CellState(matrix[i][j])
 
-    def getCell(self, x: int, y: int):
+    def getCell(self, x: int, y: int) -> CellState:
         logger = logging.getLogger(__name__)
         if not (0 <= x < 10 and 0 <= y < 10):
             # logger.warning('Coords of get must be in range [0, 10)')
@@ -55,7 +55,7 @@ class GameModel(QObject):
             return CellState.FREE
         return self.__matrix[y][x]
 
-    def setCell(self, x: int, y: int, state: CellState):
+    def setCell(self, x: int, y: int, state: CellState) -> None:
         logger = logging.getLogger(__name__)
         if not (0 <= x < 10 and 0 <= y < 10):
             # logger.warning('Coords of set must be in range [0, 10)')
