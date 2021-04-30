@@ -2,13 +2,15 @@ import copy
 import logging
 import pprint
 import unittest
+import random
 from typing import List, Optional, Tuple
 
 from PyQt5.QtCore import QPoint, QObject, pyqtSignal
 from PyQt5.QtWidgets import QGraphicsPixmapItem
 
-from Model.Emuns import CellState
+from Model.Enums import CellState
 from Presenter.GameArea import Rotation, ShipListItem, Ship
+import Environment
 
 
 class GameModel(QObject):
@@ -55,13 +57,27 @@ class GameModel(QObject):
             return CellState.FREE
         return self.__matrix[y][x]
 
-    def setCell(self, x: int, y: int, state: CellState) -> None:
+    def getRandomOccupedCell(self):
+        points = []
+        for x in range(10):
+            for y in range(10):
+                if self.getCell(x, y) == CellState.OCCUPIED:
+                    points.append((x, y))
+
+        if points:
+            x, y = random.choice(points)
+            return QPoint(x, y)
+        return None
+
+    def setCell(self, x: int, y: int, state: CellState):
         logger = logging.getLogger(__name__)
         if not (0 <= x < 10 and 0 <= y < 10):
             # logger.warning('Coords of set must be in range [0, 10)')
             return None
         self.__matrix[y][x] = state
-        self.dumpMatrix()
+
+        if Environment.DEBUG:
+            self.dumpMatrix()
 
     def isOver(self) -> bool:
         """
@@ -364,9 +380,14 @@ class TestModel(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    # model = GameModel()
-    # model.setMatrix(TestModel.initField)
-    # model.hit(1, 7)
+    model = GameModel()
+    model.setMatrix(TestModel.initField)
+    
+    print(model.getRandomOccupedCell())
+    print(model.getRandomOccupedCell())
+    print(model.getRandomOccupedCell())
+    print(model.getRandomOccupedCell())
+
 
     unittest.main()
     logging.basicConfig(level=logging.DEBUG,

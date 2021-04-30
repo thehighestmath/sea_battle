@@ -10,11 +10,12 @@ from PyQt5.QtCore import pyqtSignal, QTimer
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import QGraphicsBlurEffect
+from PyQt5.QtWidgets import QPushButton
 
 # inner project imports
 import Environment
 from Model.AI import AI
-from Model.Emuns import GameState, GameMode
+from Model.Enums import GameState, GameMode
 from Model.GameModel import GameModel
 from Presenter.GameArea import GameArea
 from Presenter.ui_gamewindow import Ui_GameWindow
@@ -110,10 +111,68 @@ class GameWindow(QtWidgets.QWidget):
     def hideShipsAndButton(self):
         self.ui.gameArea_1.hideShipList()
         self.ui.gameArea_2.hideShipList()
-        if not DEBUG:
+        if not Environment.DEBUG:
             self.ui.gameArea_1.hideShips()
             self.ui.gameArea_2.hideShips()
-        self.ui.buttonWidget.hide()
+
+        self.ui.finishSettingShips.hide()
+        self.ui.shuffleShips.hide()
+
+        if self.gameMode == GameMode.PVP:
+            self.ui.buttonWidget.hide()
+        elif self.gameMode == GameMode.PVE:
+            resourcePath = Environment.Resources.path()
+            imagePath = os.path.join(resourcePath, "img", "miscellaneous", "radar.png")
+            icon = QIcon(QPixmap(imagePath))
+            self.ui.scan = QPushButton(icon, "  SCAN ENEMY", self)
+            self.ui.scan.setIconSize(self.ui.scan.rect().size())
+
+            self.ui.scan.setStyleSheet("""
+                QPushButton{
+                    background: white;
+                    border: none;
+                    border: 1px solid #bbb;
+                    max-width: 180px;
+                    font-size: 20px;
+                    padding: 10px 10px;
+                    border-radius: 10px;
+                }
+
+                QPushButton:hover{
+                    background: #bbb
+                }
+            """)
+            self.ui.buttonLayout.insertWidget(1, self.ui.scan)
+            
+            self.ui.scan.cooldown = 0
+            self.ui.scan.clicked.connect(lambda: self.scanBotArea())
+        else:
+            raise Exception(f"Unknown state! self.gameMode is {self.gameMode}. Accepted {GameMode.PVP}, {GameMode.PVE}")  # wtf
+
+    def scanBotArea(self):
+        cell = self.model_2.getRandomOccupedCell()
+        if cell is None:
+            return
+        
+        if self.ui.gameArea_2.scanEffect(cell.x(), cell.y()):
+            self.ui.scan.setEnabled(False)
+            self.ui.scan.cooldown = 4
+            self.ui.scan.setText(f"  COOLDOWN...{self.ui.scan.cooldown}")
+
+    def handleScanButton(self):
+        if self.gameMode == GameMode.PVP:
+            return
+        try:
+            if self.currentPlayer == 1 and self.ui.scan.cooldown > 0:
+                self.ui.scan.cooldown -= 1
+                if self.ui.scan.cooldown == 0:
+                    self.ui.scan.setEnabled(True)
+                    self.ui.scan.setText("  SCAN ENEMY")
+                else:
+                    self.ui.scan.setText(f"  COOLDOWN...{self.ui.scan.cooldown}")
+        except Exception:
+            pass
+        
 
     def preparePlayer(self, player: int):
         if player == 1:
@@ -219,13 +278,13 @@ class GameWindow(QtWidgets.QWidget):
                 return
             self.ui.statusbar.showMessage("")
             self.currentState = GameState.GAME
-            self.initCurrentPlayer()
             self.hideShipsAndButton()
             self.movePlayer(self.currentPlayer)
 
         elif self.currentState == GameState.GAME:
             if not keepPlayer:
                 self.currentPlayer = 2 if self.currentPlayer == 1 else 1
+                self.handleScanButton()
             self.movePlayer(self.currentPlayer)
 
         else:

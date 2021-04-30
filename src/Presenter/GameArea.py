@@ -16,9 +16,13 @@ from PyQt5.QtWidgets import QWidget, QGraphicsScene, QGraphicsItem
 # inner project imports
 import Environment
 from Model.Controller import Controller
+from Presenter.GraphcisItems.Sprite import SpriteItem
+from Presenter.GraphcisItems.FadingPixmap import FadingPixmapItem
+from Presenter.GraphcisItems.FloatingGradient import FloatingGradientItem
+from Model.Enums import CellState
+
 # ui
 from Presenter.ui_GameArea import Ui_GameArea
-from Model.Emuns import CellState
 
 DEBUG_RESOURCE = ""
 log = logging.getLogger("GameArea")
@@ -42,62 +46,6 @@ class Ship():
         self.length   = length
         self.pos      = pos
         self.vertical = vertical
-
-
-class SpriteItem(QGraphicsItem):
-    def __init__(self, parent=None):
-        super(SpriteItem, self).__init__(parent)
-        self.__spritePixmap = None
-        self.__currentFrame = 0
-        self.__boundingRect = QRectF(0, 0, 0, 0)
-
-        self.__frameCount = 0
-        self.__loopAnimation = False
-
-        self.__timer = QTimer()
-        self.__timer.timeout.connect(self.__nextFrame)
-
-        self.__animationFinishedCallback = None
-
-    def __nextFrame(self):
-        self.__currentFrame += 1
-        isAnimationFinished = False
-        if self.__currentFrame >= self.__frameCount:
-            self.__currentFrame = 0
-            isAnimationFinished = True
-
-        self.update(self.__boundingRect)
-
-        if isAnimationFinished and not self.__loopAnimation:
-            if(self.__animationFinishedCallback):
-                self.__animationFinishedCallback()
-
-    def startAnimation(self, frame_length, loop, animationFinishedCallback = None):
-        self.__timer.start(frame_length)
-        self.__loopAnimation = loop
-        self.__animationFinishedCallback = animationFinishedCallback
-
-    def stopAnimation(self):
-        self.__timer.stop()
-
-    def setSpriteMap(self, pixmap, height, width, count):
-        self.__frameCount = count
-        self.__spritePixmap = pixmap
-        self.__boundingRect = QRectF(0, 0, width, height)
-
-    def boundingRect(self):
-        return self.__boundingRect
-
-    def paint(self, painter, style_option, widget):
-        width = self.__boundingRect.width()
-        height = self.__boundingRect.height()
-
-        sourceRect = QRectF(width * self.__currentFrame, 0, width, height)
-        painter.drawPixmap(
-            self.__boundingRect,
-            self.__spritePixmap,
-            sourceRect
-        )
 
 
 class Rotation(Enum):
@@ -189,26 +137,25 @@ class GameArea(QWidget):
         self.__placer = QGraphicsRectItem()
         self.__dragShip = False
 
+        self.__targetPixmap = None
+        self.__targets = []
+        self.__scanEffect = None
+
         # prepare Qt objects
         self.__scene = QGraphicsScene()
         self.__loadResources()
         self.__initGraphicsView()
         self.__adjustedToSize = 0
 
-        # self.eventFilter = self.__eventFilter
-
-
     def serviceModel(self, game_model):
         self.removeModel()
         self.__gameModel = game_model
         self.__gameModel.shipKilled.connect(self.__shootAround)
 
-
     def removeModel(self):
         if self.__gameModel:
             self.shipKilled.disconnect()
             self.__gameModel = None
-
 
     def __loadResources(self):
         if DEBUG_RESOURCE:
@@ -246,6 +193,7 @@ class GameArea(QWidget):
             "shipcounter.png"
         ))
 
+        self.__targetPixmap = QPixmap(os.path.join(resourcesPath, "img", "cells", "target.png"))
 
     def __initGraphicsView(self):
         self.__ui.graphicsView.setScene(self.__scene)
@@ -305,7 +253,6 @@ class GameArea(QWidget):
         pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
         self.__placer.setPen(pen)
 
-
     def __setCell(self, x, y, cell_type):
         if cell_type not in self.__cellImages.keys():
             raise ValueError(f"Type is {cell_type}. Allowed \"intact\", \"miss\", \"hit\"")
@@ -314,7 +261,6 @@ class GameArea(QWidget):
         cellItem.setData(0, cell_type)
         pixmap = QPixmap.fromImage(self.__cellImages[cell_type])
         cellItem.setPixmap(pixmap)
-
 
     def __runAnimation(self, x, y, animation, looped=False):
         sprite = SpriteItem()
@@ -336,7 +282,6 @@ class GameArea(QWidget):
 
         sprite.startAnimation(100, looped, removeAnimation)
 
-
     def __shootAround(self, ship: Ship):
         shipCells = []
         for i in range(ship.length):
@@ -356,14 +301,11 @@ class GameArea(QWidget):
                 self.__runAnimation(cell.x(), cell.y(), "splash")
         log.debug(f"name: {ship.name} | length: {ship.length} | pos: {ship.pos} | vertical: {ship.vertical}")
 
-
     def hasHeightForWidth(self):
         return True
 
-
     def heightForWidth(self, width):
         return width / self.__ratio
-
 
     def hideShipList(self):
         self.__ratio = self.RATIO_WITHOUT_SHIPLIST
@@ -375,19 +317,15 @@ class GameArea(QWidget):
         resize = QResizeEvent(self.size(), self.size())
         QApplication.postEvent(self, resize)
 
-
     def getPlacedShips(self):
         return self.__placedShips
-
 
     def placedShipsCount(self):
         return len(self.__placedShips)
 
-
     def hideShips(self):
         for ship in self.__placedShips:
             self.__scene.removeItem(ship)
-
 
     def removePlacedShips(self):
         if self.__shipListItem.scene() is None:
@@ -400,8 +338,7 @@ class GameArea(QWidget):
             self.__scene.removeItem(ship)
 
         self.__placedShips.clear()
-
-
+    
     def shuffleShips(self):
         if self.__shipListItem.scene() is None:
             return
@@ -445,7 +382,6 @@ class GameArea(QWidget):
                 cell = random.choice(cells)
                 self.__placeShip(shipItem, cell.x(), cell.y(), rot)
 
-
     def resizeEvent(self, event):
         size = event.size()
         if size == self.__adjustedToSize:
@@ -465,6 +401,35 @@ class GameArea(QWidget):
         self.setContentsMargins(QMargins(h_margin, v_margin, h_margin, v_margin))
         self.__resizeScene()
 
+    def scanEffect(self, x, y):
+        """
+        :return: True on success, False otherwise
+        """
+        if self.__scanEffect:
+            return False
+
+        def scanFinisedCallback():
+            self.__scene.removeItem(self.__scanEffect)
+            del self.__scanEffect
+            self.__scanEffect = None
+
+            target = FadingPixmapItem(self.__targetPixmap)
+            target.setPos((x + 1) * self.tileSize, (y + 1) * self.tileSize)
+            target.setScale(self.__scaleFactor)
+            target.setData(0, (x, y))
+            self.__targets.append(target)
+            self.__scene.addItem(target)
+
+        self.__scanEffect = FloatingGradientItem(
+            QRectF(self.tileSize, self.tileSize, self.__originalTileSize * 10, self.__originalTileSize * 10),
+            scanFinisedCallback
+        )
+
+        self.__scanEffect.setScale(self.__scaleFactor)
+
+        self.__scanEffect.setBackwards(True)
+        self.__scene.addItem(self.__scanEffect)
+        return True
 
     def __resizeScene(self):
         width = self.__ui.graphicsView.width()
@@ -526,12 +491,20 @@ class GameArea(QWidget):
             )
             ship.setScale(self.__scaleFactor)
 
+        for target in self.__targets:
+            x, y = target.data(0)
+            target.setPos((x + 1) * self.tileSize, (y + 1) * self.tileSize)
+            target.setScale(self.__scaleFactor)
+
+        if self.__scanEffect:
+            self.__scanEffect.setPos(self.tileSize, self.tileSize)
+            self.__scanEffect.setScale(self.__scaleFactor)
+
         shipListX = self.tileSize
         shipListY = self.tileSize * (11 + self.EPS)
         self.__shipListItem.setScale(self.__scaleFactor)
         self.__shipListItem.setPos(shipListX, shipListY)
         self.__ghostShip.setScale(self.__scaleFactor)
-
 
     def eventFilter(self, obj, event):
         if obj is self.__ui.graphicsView.viewport():
@@ -544,14 +517,12 @@ class GameArea(QWidget):
 
         return super().eventFilter(obj, event)
 
-
     def sceneToMap(self, x, y):
         x -= self.tileSize
         y -= self.tileSize
         x //= self.tileSize
         y //= self.tileSize
         return int(x), int(y)
-
 
     def __initGhostShip(self, ship, pos):
         self.__ghostShip.setPixmap(QPixmap.fromImage(ship.image))
@@ -570,7 +541,6 @@ class GameArea(QWidget):
         self.__scene.addItem(self.__ghostShip)
         self.__ghostShip.setZValue(100)
 
-
     def __rotateGhostShip(self, rotation=None):
         rotation = rotation if rotation else self.__ghostShip.data(0).next()
         self.__ghostShip.setData(0, rotation)
@@ -587,7 +557,6 @@ class GameArea(QWidget):
         else:
             raise Exception("Unknown state! Rotation is not horizontal and not vertical.")  # wtf
         self.__validatePlacer()
-
 
     def __ghostShipLongSurface(self):
         pos = self.__ghostShip.pos()
@@ -614,7 +583,6 @@ class GameArea(QWidget):
             if not isPlacerValid:
                 break
         return isPlacerValid
-
 
     def __validatePlacer(self):
         sceneX, sceneY = self.__ghostShipLongSurface()
@@ -653,7 +621,6 @@ class GameArea(QWidget):
         self.__placer.setPen(pen)
         self.__placer.setData(0, isPlacerValid)
 
-
     def __placeShip(self, shipListItem, x, y, rotation):
         sceneX, sceneY = (x + 1) * self.tileSize, (y + 1) * self.tileSize
 
@@ -672,7 +639,6 @@ class GameArea(QWidget):
 
         self.__placedShips.append(placedShip)
         self.__scene.addItem(placedShip)
-
 
     def __placeGhostShip(self):
         isPlacingPermitted = self.__placer.data(0)
@@ -703,7 +669,6 @@ class GameArea(QWidget):
                 pos=QPoint(mapX, mapY),
                 vertical=vertical
             ))
-
 
     def __viewportMousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -749,7 +714,6 @@ class GameArea(QWidget):
             if self.__dragShip:
                 self.__rotateGhostShip()
 
-
     def __viewportMouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             if self.__dragShip:
@@ -761,8 +725,7 @@ class GameArea(QWidget):
             # self.__placeShip()
             self.__placeGhostShip()
             self.__placer.setData(0, False)
-
-
+        
     def __viewportMouseMoveEvent(self, event):
         if self.__dragShip:
             self.__ghostShip.setPos(event.pos())
@@ -777,7 +740,6 @@ class GameArea(QWidget):
 
             self.__validatePlacer()
 
-
     def __accept(self, x, y, hit_type: CellState):
         log.debug(f" -- ACCEPTED -- hit on point ({x}, {y}) hit type: {hit_type}")
         cell = self.__field[y * 10 + x]
@@ -787,6 +749,11 @@ class GameArea(QWidget):
         if hit_type in [CellState.HIT, CellState.KILLED]:
             self.__setCell(x, y, 'hit')
             self.__runAnimation(x, y, "explosion", looped=True)
+            for target in self.__targets:
+                if (x, y) == target.data(0):
+                    self.__scene.removeItem(target)
+                    self.__targets.remove(target)
+                    break
         elif hit_type in [CellState.MISS]:
             self.__setCell(x, y, 'miss')
             self.__runAnimation(x, y, "splash", looped=False)
@@ -801,8 +768,6 @@ class GameArea(QWidget):
                 rect = QRect(position.x(), position.y(), width, height)
                 if rect.contains(x, y):
                     self.__scene.addItem(ship)
-
-
 
     def __decline(self, x, y):
         log.debug(f"declined hit on point ({x}, {y})")
