@@ -4,8 +4,6 @@ set PYTHONOPTIMIZE=1
 set RESOURCEPATH=res
 set SCRIPTPATH=%~dp0
 
-echo %SCRIPTPATH%
-
 :: Check installed python
 @py -3 --version >nul 2>&1
 if %errorlevel% neq 0 (
