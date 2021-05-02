@@ -11,11 +11,11 @@ from PyQt5.QtGui import QPixmap, QTransform
 import Environment
 from Model.Enums import GameMode
 from OffGame.UI_AIChoose import UI_AiChoose
-from Model.Enums import AIMode
+from Model.Enums import GameLevel
 
 
 class AIChooseWidget(QtWidgets.QWidget):
-    modeSignal = pyqtSignal(AIMode)
+    modeSignal = pyqtSignal(GameLevel)
 
     backSignal = pyqtSignal()
 
@@ -31,13 +31,13 @@ class AIChooseWidget(QtWidgets.QWidget):
 
 
     def easyStart(self):
-        self.modeSignal.emit(AIMode.EASY)
+        self.modeSignal.emit(GameLevel.EASY)
 
     def mediumStart(self):
-        self.modeSignal.emit(AIMode.MIDDLE)
+        self.modeSignal.emit(GameLevel.MEDIUM)
 
     def hardStart(self):
-        self.modeSignal.emit(AIMode.HARD)
+        self.modeSignal.emit(GameLevel.HARD)
 
     def back(self):
         self.backSignal.emit()

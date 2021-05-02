@@ -2,7 +2,7 @@ from PyQt5 import QtGui
 from PyQt5.QtCore import pyqtSlot, Qt, QCoreApplication
 from PyQt5.QtWidgets import QMainWindow, QStackedWidget
 
-from Model.Enums import DisplayedWidget, GameMode, AIMode
+from Model.Enums import DisplayedWidget, GameMode, GameLevel
 from OffGame.GameOverWidget import GameOverWidget
 from OffGame.InitWidget import InitWidget
 from OffGame.PlayerNamesWidget import PlayerNamesWidget
@@ -93,7 +93,7 @@ class MainWindow(QMainWindow):
 
         self.display()
 
-    @pyqtSlot(AIMode)
+    @pyqtSlot(GameLevel)
     def goToGameWindow(self, mode):
         self.currentWidget = DisplayedWidget.GAME
         player_1 = self.playerNamesWidget.getPlayer1()

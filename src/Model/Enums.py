@@ -19,12 +19,6 @@ class GameMode(IntEnum):
     PVE = 1
 
 
-class AIMode(IntEnum):
-    EASY = 0
-    MIDDLE = 1
-    HARD = 2
-
-
 class CellState(IntEnum):
     FREE = 0
     OCCUPIED = 1
