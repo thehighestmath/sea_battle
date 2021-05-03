@@ -97,7 +97,7 @@ class MainWindow(QMainWindow):
     def goToGameWindow(self, mode):
         self.currentWidget = DisplayedWidget.GAME
         player_1 = self.playerNamesWidget.getPlayer1()
-        self.gameWindow = GameWindow(player_1, "player_2", GameMode.PVE)
+        self.gameWindow = GameWindow(player_1, "OpenAI", GameMode.PVE, mode)
         self.gameWindow.gameOverSignal.connect(self.showGameOver)
         self.gameWindow.toMenuSignal.connect(self.goToMenu)
         self.stack.insertWidget(DisplayedWidget.GAME, self.gameWindow)
