@@ -1,5 +1,6 @@
 import os
 import sys
+import ast
 
 DEBUG = False
 
@@ -36,8 +37,29 @@ class ResourceDirectory(object):
     def __str__(self):
         return self.relativePath
 
+class ScoreBoard:
+    @staticmethod
+    def read():
+        rootPath = Root.path()
+        file = open(os.path.join(rootPath, "ScoreBoard.txt"), "w+")
+        try:
+            scoreBoard = ast.literal_eval(file.read())
+        except Exception:
+            scoreBoard = {}
+        file.close()
+        return scoreBoard
+
+    @staticmethod
+    def write(scoreBoard):
+        rootPath = Root.path()
+        print(os.path.join(rootPath, "ScoreBoard.txt"))
+        file = open(os.path.join(rootPath, "ScoreBoard.txt"), "r")
+        file.write("%s" % scoreBoard)
+        file.close()
 
 if __name__ == "__main__":
-    print("path: ", Resources.path())
-    ResourceDirectory("oioi")
-    print("path: ", Resources.path())
+    # print(Root.path())
+    # # ResourceDirectory("oioi")
+    # print("path: ", Resources.path())
+    ScoreBoard.write({'key1':'1','key2':'2'})
+    print(ScoreBoard.read())
