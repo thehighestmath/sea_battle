@@ -1,6 +1,6 @@
 import os
 import sys
-import ast
+import json
 
 DEBUG = False
 
@@ -41,25 +41,23 @@ class ScoreBoard:
     @staticmethod
     def read():
         rootPath = Root.path()
-        file = open(os.path.join(rootPath, "ScoreBoard.txt"), "w+")
         try:
-            scoreBoard = ast.literal_eval(file.read())
-        except Exception:
+            with open(os.path.join(rootPath, "ScoreBoard.txt")) as fp:
+                try:
+                    scoreBoard = json.load(fp)
+                except json.JSONDecodeError:
+                    scoreBoard = {}
+        except FileNotFoundError:
             scoreBoard = {}
-        file.close()
         return scoreBoard
 
     @staticmethod
     def write(scoreBoard):
         rootPath = Root.path()
         print(os.path.join(rootPath, "ScoreBoard.txt"))
-        file = open(os.path.join(rootPath, "ScoreBoard.txt"), "r")
-        file.write("%s" % scoreBoard)
-        file.close()
+        with open(os.path.join(rootPath, "ScoreBoard.txt"), "w") as fp:
+            json.dump(scoreBoard, fp, indent=2)
 
 if __name__ == "__main__":
-    # print(Root.path())
-    # # ResourceDirectory("oioi")
-    # print("path: ", Resources.path())
-    ScoreBoard.write({'key1':'1','key2':'2'})
-    print(ScoreBoard.read())
+    print(Root.path())
+    print("path: ", Resources.path())
