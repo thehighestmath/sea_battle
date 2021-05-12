@@ -27,7 +27,7 @@ class GameWindow(QtWidgets.QWidget):
     gameOverSignal = pyqtSignal(str)
     toMenuSignal = pyqtSignal()
 
-    def __init__(self, player_1, player_2, gameMode=None, parent=None):
+    def __init__(self, player_1, player_2, gameMode=None, gameLevel=None, parent=None):
         super(GameWindow, self).__init__(parent)
         self.ui = Ui_GameWindow()
         self.ui.setupUi(self)
@@ -45,7 +45,7 @@ class GameWindow(QtWidgets.QWidget):
         self.ui.gameArea_1.controller.hit.connect(self.makeShot)
         self.ui.gameArea_2.controller.hit.connect(self.makeShot)
         if gameMode == GameMode.PVE:
-            self.ai: Optional[AI] = AI()
+            self.ai: Optional[AI] = AI(gameLevel)
             self.ai.setController(self.ui.gameArea_1.controller)
         else:
             self.ai: Optional[AI] = None
