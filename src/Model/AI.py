@@ -13,7 +13,7 @@ from Presenter.GameArea import Ship
 class AI(QObject):
     SIZE = 10
     
-    def __init__(self, parent=None):
+    def __init__(self, levelAI, parent=None):
         super(AI, self).__init__(parent)
         self.controller: Optional[Controller] = None
         self.cells = [{'x': x, 'y': y} for y in range(0, AI.SIZE) for x in range(0, AI.SIZE)]
@@ -22,6 +22,7 @@ class AI(QObject):
         self.weight: Optional[List[List[int]]] = None
 
         self.countMisses = 1
+        self.levelAI = levelAI
 
         self.enemyShips = [1, 1, 1, 1, 2, 2, 2, 3, 3, 4]
 
@@ -151,8 +152,8 @@ class AI(QObject):
                     return x, y
         return None, None
 
-    def makeShot(self, gameLevel=GameLevel.HARD):
-        self.recalculateWeightMap(gameLevel)
+    def makeShot(self):
+        self.recalculateWeightMap(self.levelAI)
         x, y = choice(self.getMaxWeightCells())
         cell = {'x': x, 'y': y}
         if self.model.getCell(**cell) == CellState.FREE:

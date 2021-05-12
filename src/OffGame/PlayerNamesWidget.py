@@ -51,6 +51,12 @@ class PlayerNamesWidget(QtWidgets.QWidget):
     def menu(self):
         self.menuSignal.emit()
 
+    def getPlayer1(self):
+        return self.ui.lineEdit.text()
+
+    def getPlayer2(self):
+        return self.ui.lineEdit_2.text()
+
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
