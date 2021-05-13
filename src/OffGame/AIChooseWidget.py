@@ -2,15 +2,12 @@ import os
 import sys
 
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import QCoreApplication
-from PyQt5.QtCore import Qt
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtGui import QPixmap, QTransform
+from PyQt5.QtGui import QPixmap, QIcon
 
 # inner project imports
 import Environment
-from Model.Enums import GameMode
-from OffGame.UI_AIChoose import UI_AiChoose
+from OffGame.UI_AIChoose import Ui_AiChoose
 from Model.Enums import GameLevel
 
 
@@ -21,8 +18,12 @@ class AIChooseWidget(QtWidgets.QWidget):
 
     def __init__(self):
         super().__init__()
-        self.ui = UI_AiChoose()
+        self.ui = Ui_AiChoose()
         self.ui.setupUi(self)
+
+        resourcePath = Environment.Resources.path()
+        iconExit = QIcon(QPixmap(os.path.join(resourcePath, "img", "miscellaneous", "logout.png")))
+        self.ui.pushButton.setIcon(iconExit)
 
         self.ui.pushButton.clicked.connect(self.back)
         self.ui.pushButton_2.clicked.connect(self.easyStart)

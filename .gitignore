@@ -134,3 +134,6 @@ view/
 *.jpg
 
 /res
+
+scoreboard*
+.qt_for_python

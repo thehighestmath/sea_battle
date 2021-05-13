@@ -104,6 +104,21 @@ class GameWindow(QtWidgets.QWidget):
             player = self.ui.labelPlayer_2.text()
         else:
             raise Exception('Unknown player')
+        
+        sb = Environment.ScoreBoard.read()
+
+        if self.gameMode == GameMode.PVP:
+            currentScore = Environment.ScoreBoard.readLine("PVP", player)
+            currentScore += 1
+            Environment.ScoreBoard.writeLine("PVP", player, currentScore)
+        elif self.gameMode == GameMode.PVE:
+            if self.currentPlayer == 1:
+                currentScore = Environment.ScoreBoard.readLine("PVE", player)
+                currentScore += 1
+                Environment.ScoreBoard.writeLine("PVE", player, currentScore)
+        else:
+            raise Exception(f'Unknown type of game mode {self.gameMode}')
+
         self.gameOverSignal.emit(player)
 
     def mousePressEvent(self, event: QMouseEvent):

@@ -78,7 +78,7 @@ class Ui_InitWidget(object):
         self.highscoreTableLayout = QtWidgets.QHBoxLayout()
         self.highscoreTableLayout.setObjectName("highscoreTableLayout")
         self.highscoreTable = QtWidgets.QPushButton(self.layoutWidget)
-        self.highscoreTable.setEnabled(False)
+        self.highscoreTable.setEnabled(True)
         self.highscoreTable.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.highscoreTable.setStyleSheet("QPushButton{\n"
 "background: white;\n"

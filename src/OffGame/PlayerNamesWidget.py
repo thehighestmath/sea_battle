@@ -1,12 +1,15 @@
 import sys
+import os
 from typing import Optional
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtGui import QIcon, QPixmap
 
 from Model.Enums import GameMode
-from OffGame.UI_PlayerNames import UI_PlayerNames
+from OffGame.UI_PlayerNames import Ui_PlayerNames
 
+import Environment
 
 class PlayerNamesWidget(QtWidgets.QWidget):
     startSignal = pyqtSignal(str, str)
@@ -14,8 +17,12 @@ class PlayerNamesWidget(QtWidgets.QWidget):
 
     def __init__(self):
         super().__init__()
-        self.ui = UI_PlayerNames()
+        self.ui = Ui_PlayerNames()
         self.ui.setupUi(self)
+
+        resourcePath = Environment.Resources.path()
+        iconExit = QIcon(QPixmap(os.path.join(resourcePath, "img", "miscellaneous", "logout.png")))
+        self.ui.pushButton_2.setIcon(iconExit)
 
         self.ui.pushButton.clicked.connect(self.start)
         self.ui.pushButton_2.clicked.connect(self.menu)
