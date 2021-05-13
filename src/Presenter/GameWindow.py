@@ -1,43 +1,37 @@
 import logging
+import os
 import random
 import signal
 import sys
-import os
-from enum import IntEnum
 from typing import Optional
 
 from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtGui import QMouseEvent
+from PyQt5.QtCore import pyqtSignal, QTimer
 from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import QGraphicsBlurEffect
-
-from Model.GameModel import GameModel
-from Presenter.GameArea import GameArea
+from PyQt5.QtWidgets import QPushButton
 
 # inner project imports
 import Environment
-
+from Model.AI import AI
+from Model.Enums import GameState, GameMode
+from Model.GameModel import GameModel
+from Presenter.GameArea import GameArea
 from Presenter.ui_gamewindow import Ui_GameWindow
 
-DEBUG = False
-
-class GameState(IntEnum):
-    INIT = 0
-    FIRST_PREPARE = 1
-    SECOND_PREPARE = 2
-    GAME = 3
-    GAME_OVER = 4
+DEBUG = True
 
 
 class GameWindow(QtWidgets.QWidget):
     gameOverSignal = pyqtSignal(str)
     toMenuSignal = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, player_1, player_2, gameMode=None, gameLevel=None, parent=None):
         super(GameWindow, self).__init__(parent)
         self.ui = Ui_GameWindow()
         self.ui.setupUi(self)
+        self.gameMode = gameMode
 
         resourcePath = Environment.Resources.path()
         imagePath = os.path.join(resourcePath, "img", "miscellaneous", "logout.png")
@@ -46,8 +40,15 @@ class GameWindow(QtWidgets.QWidget):
         self.ui.menu.clicked.connect(lambda _: self.toMenuSignal.emit())
         # self.ui.menu.setIconSize()
 
+        self.ui.labelPlayer_1.setText(player_1)
+        self.ui.labelPlayer_2.setText(player_2)
         self.ui.gameArea_1.controller.hit.connect(self.makeShot)
         self.ui.gameArea_2.controller.hit.connect(self.makeShot)
+        if gameMode == GameMode.PVE:
+            self.ai: Optional[AI] = AI(gameLevel)
+            self.ai.setController(self.ui.gameArea_1.controller)
+        else:
+            self.ai: Optional[AI] = None
         self.ui.finishSettingShips.clicked.connect(self.next)
         self.ui.shuffleShips.clicked.connect(self.shuffleShips)
         self.currentState: GameState = GameState.INIT
@@ -66,7 +67,7 @@ class GameWindow(QtWidgets.QWidget):
             gameArea = self.ui.gameArea_2
 
         else:
-            raise Exception(f'Player {player} does not supported')
+            raise Exception(f'Player {self.currentPlayer} does not supported')
 
         gameArea.shuffleShips()
 
@@ -77,15 +78,17 @@ class GameWindow(QtWidgets.QWidget):
             if self.currentPlayer == 2 and controller == self.ui.gameArea_1.controller:
                 isKeep, cellType = self.model_1.hit(x, y)
                 controller.accept(cellType)
-                self.next(isKeep)
                 if self.model_1.isOver():
                     self.gameOver()
+                else:
+                    self.next(isKeep)
             elif self.currentPlayer == 1 and controller == self.ui.gameArea_2.controller:
                 isKeep, cellType = self.model_2.hit(x, y)
                 controller.accept(cellType)
-                self.next(isKeep)
                 if self.model_2.isOver():
                     self.gameOver()
+                else:
+                    self.next(isKeep)
             else:
                 controller.decline()
         else:
@@ -95,7 +98,28 @@ class GameWindow(QtWidgets.QWidget):
         logger = logging.getLogger(__name__)
         logger.debug(f"Игра окончена. Выиграл игрок {self.currentPlayer}")
         self.currentState = GameState.GAME_OVER
-        self.gameOverSignal.emit(f'Player {self.currentPlayer}')
+        if self.currentPlayer == 1:
+            player = self.ui.labelPlayer_1.text()
+        elif self.currentPlayer == 2:
+            player = self.ui.labelPlayer_2.text()
+        else:
+            raise Exception('Unknown player')
+        
+        sb = Environment.ScoreBoard.read()
+
+        if self.gameMode == GameMode.PVP:
+            currentScore = Environment.ScoreBoard.readLine("PVP", player)
+            currentScore += 1
+            Environment.ScoreBoard.writeLine("PVP", player, currentScore)
+        elif self.gameMode == GameMode.PVE:
+            if self.currentPlayer == 1:
+                currentScore = Environment.ScoreBoard.readLine("PVE", player)
+                currentScore += 1
+                Environment.ScoreBoard.writeLine("PVE", player, currentScore)
+        else:
+            raise Exception(f'Unknown type of game mode {self.gameMode}')
+
+        self.gameOverSignal.emit(player)
 
     def mousePressEvent(self, event: QMouseEvent):
         logger = logging.getLogger(__name__)
@@ -110,10 +134,68 @@ class GameWindow(QtWidgets.QWidget):
     def hideShipsAndButton(self):
         self.ui.gameArea_1.hideShipList()
         self.ui.gameArea_2.hideShipList()
-        if not DEBUG:
+        if not Environment.DEBUG:
             self.ui.gameArea_1.hideShips()
             self.ui.gameArea_2.hideShips()
-        self.ui.buttonWidget.hide()
+
+        self.ui.finishSettingShips.hide()
+        self.ui.shuffleShips.hide()
+
+        if self.gameMode == GameMode.PVP:
+            self.ui.buttonWidget.hide()
+        elif self.gameMode == GameMode.PVE:
+            resourcePath = Environment.Resources.path()
+            imagePath = os.path.join(resourcePath, "img", "miscellaneous", "radar.png")
+            icon = QIcon(QPixmap(imagePath))
+            self.ui.scan = QPushButton(icon, "  SCAN ENEMY", self)
+            self.ui.scan.setIconSize(self.ui.scan.rect().size())
+
+            self.ui.scan.setStyleSheet("""
+                QPushButton{
+                    background: white;
+                    border: none;
+                    border: 1px solid #bbb;
+                    max-width: 180px;
+                    font-size: 20px;
+                    padding: 10px 10px;
+                    border-radius: 10px;
+                }
+
+                QPushButton:hover{
+                    background: #bbb
+                }
+            """)
+            self.ui.buttonLayout.insertWidget(1, self.ui.scan)
+
+            self.ui.scan.cooldown = 0
+            self.ui.scan.clicked.connect(lambda: self.scanBotArea())
+        else:
+            raise Exception(
+                f"Unknown state! self.gameMode is {self.gameMode}. Accepted {GameMode.PVP}, {GameMode.PVE}")  # wtf
+
+    def scanBotArea(self):
+        cell = self.model_2.getRandomOccupedCell()
+        if cell is None:
+            return
+
+        if self.ui.gameArea_2.scanEffect(cell.x(), cell.y()):
+            self.ui.scan.setEnabled(False)
+            self.ui.scan.cooldown = 4
+            self.ui.scan.setText(f"  COOLDOWN...{self.ui.scan.cooldown}")
+
+    def handleScanButton(self):
+        if self.gameMode == GameMode.PVP:
+            return
+        try:
+            if self.currentPlayer == 1 and self.ui.scan.cooldown > 0:
+                self.ui.scan.cooldown -= 1
+                if self.ui.scan.cooldown == 0:
+                    self.ui.scan.setEnabled(True)
+                    self.ui.scan.setText("  SCAN ENEMY")
+                else:
+                    self.ui.scan.setText(f"  COOLDOWN...{self.ui.scan.cooldown}")
+        except Exception:
+            pass
 
     def preparePlayer(self, player: int):
         if player == 1:
@@ -125,7 +207,9 @@ class GameWindow(QtWidgets.QWidget):
             self.setWidgetsOnOff(isFirst=False)
             self.ui.wigdetPlayer_1.hide()
             self.ui.wigdetPlayer_2.show()
-
+            if self.gameMode == GameMode.PVE:
+                self.shuffleShips()
+                self.next()
         else:
             raise Exception(f'Player {player} does not supported')
 
@@ -134,17 +218,23 @@ class GameWindow(QtWidgets.QWidget):
         self.ui.wigdetPlayer_2.show()
         if player == 1:
             isFirst = False
-            effectWidget_1 = QGraphicsBlurEffect()
-            effectWidget_2 = None
+            if self.gameMode == GameMode.PVP:
+                effectWidget_1 = QGraphicsBlurEffect()
+                effectWidget_2 = None
         elif player == 2:
             isFirst = True
-            effectWidget_1 = None
-            effectWidget_2 = QGraphicsBlurEffect()
+            if self.gameMode == GameMode.PVP:
+                effectWidget_1 = None
+                effectWidget_2 = QGraphicsBlurEffect()
+            if self.gameMode == GameMode.PVE:
+                QTimer.singleShot(500, self.ai.makeShot)
+                isFirst = False
         else:
             raise Exception(f'Player {player} does not supported')
         self.setWidgetsOnOff(isFirst=isFirst)
-        self.ui.wigdetPlayer_1.setGraphicsEffect(effectWidget_1)
-        self.ui.wigdetPlayer_2.setGraphicsEffect(effectWidget_2)
+        if self.gameMode == GameMode.PVP:
+            self.ui.wigdetPlayer_1.setGraphicsEffect(effectWidget_1)
+            self.ui.wigdetPlayer_2.setGraphicsEffect(effectWidget_2)
 
     def checkCountShips(self, player: int):
         gameArea: Optional[GameArea] = None
@@ -172,6 +262,8 @@ class GameWindow(QtWidgets.QWidget):
         if player == 1:
             self.model_1 = GameModel(player, gameArea.getPlacedShips())
             gameArea.serviceModel(self.model_1)
+            if self.gameMode == GameMode.PVE:
+                self.ai.setModel(self.model_1)
         elif player == 2:
             self.model_2 = GameModel(player, gameArea.getPlacedShips())
             gameArea.serviceModel(self.model_2)
@@ -179,13 +271,21 @@ class GameWindow(QtWidgets.QWidget):
             raise Exception(f'Player {player} does not supported')
         return True
 
+    def initCurrentPlayer(self):
+        if self.gameMode == GameMode.PVP:
+            self.currentPlayer = random.randint(1, 2)
+        elif self.gameMode == GameMode.PVE:
+            self.currentPlayer = 1
+        else:
+            raise Exception(f'Unknown type of game mode {self.gameMode}')
+
     def next(self, keepPlayer: bool = False):
         if keepPlayer and self.currentState in [GameState.INIT, GameState.FIRST_PREPARE, GameState.SECOND_PREPARE]:
             raise Exception(f'Impossible use [keep_player=True] while state is {self.currentState}')
 
         if self.currentState == GameState.INIT:
             self.currentState = GameState.FIRST_PREPARE
-            self.currentPlayer = random.randint(1, 2)
+            self.initCurrentPlayer()
             self.preparePlayer(self.currentPlayer)
 
         elif self.currentState == GameState.FIRST_PREPARE:
@@ -200,13 +300,13 @@ class GameWindow(QtWidgets.QWidget):
                 return
             self.ui.statusbar.showMessage("")
             self.currentState = GameState.GAME
-            self.currentPlayer = random.randint(1, 2)
             self.hideShipsAndButton()
             self.movePlayer(self.currentPlayer)
 
         elif self.currentState == GameState.GAME:
             if not keepPlayer:
                 self.currentPlayer = 2 if self.currentPlayer == 1 else 1
+                self.handleScanButton()
             self.movePlayer(self.currentPlayer)
 
         else:

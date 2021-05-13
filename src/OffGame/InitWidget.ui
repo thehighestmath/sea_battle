@@ -83,7 +83,7 @@ background: #bbb
         <item>
          <widget class="QPushButton" name="PVE">
           <property name="enabled">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <property name="styleSheet">
            <string notr="true">QPushButton{
@@ -119,7 +119,7 @@ color: #999;
         <item>
          <widget class="QPushButton" name="highscoreTable">
           <property name="enabled">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <property name="layoutDirection">
            <enum>Qt::LeftToRight</enum>

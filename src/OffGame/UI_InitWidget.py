@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'c:\Git\sea_battle\src\OffGame\InitWidget.ui'
+# Form implementation generated from reading ui file 'InitWidget.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -51,7 +51,7 @@ class Ui_InitWidget(object):
         self.PVP.setObjectName("PVP")
         self.startGameLayout.addWidget(self.PVP)
         self.PVE = QtWidgets.QPushButton(self.layoutWidget)
-        self.PVE.setEnabled(False)
+        self.PVE.setEnabled(True)
         self.PVE.setStyleSheet("QPushButton{\n"
 "background: white;\n"
 "border: none;\n"
@@ -78,7 +78,7 @@ class Ui_InitWidget(object):
         self.highscoreTableLayout = QtWidgets.QHBoxLayout()
         self.highscoreTableLayout.setObjectName("highscoreTableLayout")
         self.highscoreTable = QtWidgets.QPushButton(self.layoutWidget)
-        self.highscoreTable.setEnabled(False)
+        self.highscoreTable.setEnabled(True)
         self.highscoreTable.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.highscoreTable.setStyleSheet("QPushButton{\n"
 "background: white;\n"

@@ -1,21 +1,18 @@
-from enum import IntEnum
-
 from PyQt5 import QtGui
-from PyQt5.QtCore import pyqtSlot, QEvent, Qt, QCoreApplication
-from PyQt5.QtWidgets import QMainWindow, QPushButton, QStackedWidget, QAction
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QCoreApplication
+from PyQt5.QtWidgets import QMainWindow, QStackedWidget
+
+from Model.Enums import DisplayedWidget, GameMode, GameLevel
+from OffGame.GameOverWidget import GameOverWidget
+from OffGame.InitWidget import InitWidget
+from OffGame.PlayerNamesWidget import PlayerNamesWidget
+from OffGame.AIChooseWidget import AIChooseWidget
+from OffGame.ScoreBoard import ScoreBoardWidget
 
 from Presenter.GameWindow import GameWindow
-from OffGame.InitWidget import InitWidget
-from OffGame.GameOverWidget import GameOverWidget
-
-
-class DisplayedWidget(IntEnum):
-    MENU = 0
-    GAME = 1
 
 
 class MainWindow(QMainWindow):
-
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setStyleSheet('''
@@ -25,16 +22,21 @@ class MainWindow(QMainWindow):
         self.setWindowFlags(Qt.FramelessWindowHint)
 
         self.menu = InitWidget()
-        self.gameWindow = GameWindow()
+        self.gameWindow = GameWindow('', '', gameMode=GameMode.PVP)
         self.currentWidget = DisplayedWidget.MENU
+        self.mode = GameMode.PVP
 
-        self.menu.PvAISignal.connect(self.goToGameWindow)
-        self.menu.PvPSignal.connect(self.goToGameWindow)
+        # self.menu.PvAISignal.connect(self.goToNames)
+        # self.menu.PvPSignal.connect(self.goToNames)
 
-        self.Stack = QStackedWidget(self)
-        self.Stack.addWidget(self.menu)
-        self.Stack.addWidget(self.gameWindow)
-        self.setCentralWidget(self.Stack)
+        self.menu.PvAISignal.connect(self.goToPVEGame)
+        self.menu.PvPSignal.connect(self.goToPVPGame)
+        self.menu.showHSTSignal.connect(self.goToScoreTable)
+
+        self.stack = QStackedWidget(self)
+        self.stack.addWidget(self.menu)
+        self.stack.addWidget(self.gameWindow)
+        self.setCentralWidget(self.stack)
 
         self.setGeometry(0, 0, 800, 600)
         self.setWindowTitle('Морской бой')
@@ -42,6 +44,26 @@ class MainWindow(QMainWindow):
         self.mLastMousePosition = None
         self.mMoving = None
         self.gameOverWidget = None
+        self.playerNamesWidget = None
+        self.AIChooseWidget = None
+        self.scoreBoardWidget = None
+
+    def goToNames(self, mode=GameMode.PVE):
+        self.playerNamesWidget = PlayerNamesWidget()
+        self.playerNamesWidget.prepareWidget(mode)
+
+        if mode == GameMode.PVE:
+            self.AIChooseWidget = AIChooseWidget()
+            self.playerNamesWidget.startSignal.connect(self.choosePvEMode)
+            self.AIChooseWidget.modeSignal.connect(self.goToGameWindow)
+        else:
+            self.playerNamesWidget.startSignal.connect(self.goToGameWindow1)
+
+        self.playerNamesWidget.menuSignal.connect(self.goToMenu)
+        self.stack.addWidget(self.playerNamesWidget)
+        self.stack.setCurrentWidget(self.playerNamesWidget)
+
+
 
     @pyqtSlot()
     def goToMenu(self):
@@ -49,28 +71,68 @@ class MainWindow(QMainWindow):
         self.display()
 
     @pyqtSlot()
-    def goToGameWindow(self):
-        self.currentWidget = DisplayedWidget.GAME
+    def goToPVPGame(self):
+        self.mode = GameMode.PVP
+        self.goToNames(GameMode.PVP)
 
-        self.gameWindow = GameWindow()
+    @pyqtSlot()
+    def goToPVEGame(self):
+        self.mode = GameMode.PVE
+        self.goToNames(GameMode.PVE)
+
+    @pyqtSlot()
+    def choosePvEMode(self):
+        self.stack.addWidget(self.AIChooseWidget)
+        self.stack.setCurrentWidget(self.AIChooseWidget)
+        self.AIChooseWidget.backSignal.connect(self.goToNames)
+
+    @pyqtSlot(str, str)
+    def goToGameWindow1(self, player_1, player_2):
+        self.currentWidget = DisplayedWidget.GAME
+        self.gameWindow = GameWindow(player_1, player_2, self.mode)
         self.gameWindow.gameOverSignal.connect(self.showGameOver)
         self.gameWindow.toMenuSignal.connect(self.goToMenu)
-        self.Stack.insertWidget(DisplayedWidget.GAME, self.gameWindow)
-        
+        self.stack.insertWidget(DisplayedWidget.GAME, self.gameWindow)
+
         self.display()
+
+    @pyqtSlot(GameLevel)
+    def goToGameWindow(self, mode):
+        self.currentWidget = DisplayedWidget.GAME
+        player_1 = self.playerNamesWidget.getPlayer1()
+        self.gameWindow = GameWindow(player_1, "OpenAI", GameMode.PVE, mode)
+        self.gameWindow.gameOverSignal.connect(self.showGameOver)
+        self.gameWindow.toMenuSignal.connect(self.goToMenu)
+        self.stack.insertWidget(DisplayedWidget.GAME, self.gameWindow)
+
+        self.display()
+
+    # def goToGameWindow_(self, gameMode):
+    #     self.currentWidget = DisplayedWidget.GAME
+    #     self.gameWindow = GameWindow(gameMode=gameMode)
+    #     self.gameWindow.gameOverSignal.connect(self.showGameOver)
+    #     self.gameWindow.toMenuSignal.connect(self.goToMenu)
+    #     self.stack.insertWidget(DisplayedWidget.GAME, self.gameWindow)
+    #
+    #     self.display()
 
     @pyqtSlot(str)
     def showGameOver(self, player):
-        print("WHAT WOT?")
         self.gameOverWidget = GameOverWidget(player)
         self.gameOverWidget.ui.menuButton.clicked.connect(self.goToMenu)
-        self.gameOverWidget.ui.newGameButton.clicked.connect(self.goToGameWindow)
-        self.Stack.addWidget(self.gameOverWidget)
-        self.Stack.setCurrentWidget(self.gameOverWidget)
+        self.stack.addWidget(self.gameOverWidget)
+        self.stack.setCurrentWidget(self.gameOverWidget)
 
+    @pyqtSlot()
+    def goToScoreTable(self):
+        self.stack.removeWidget(self.scoreBoardWidget)
+        self.scoreBoardWidget = ScoreBoardWidget()
+        self.scoreBoardWidget.onExit.connect(self.goToMenu)
+        self.stack.addWidget(self.scoreBoardWidget)
+        self.stack.setCurrentWidget(self.scoreBoardWidget)
 
     def display(self):
-        self.Stack.setCurrentIndex(self.currentWidget)
+        self.stack.setCurrentIndex(self.currentWidget)
 
     def quit(self):
         QCoreApplication.quit()
