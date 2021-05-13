@@ -1,5 +1,5 @@
 from PyQt5 import QtGui
-from PyQt5.QtCore import pyqtSlot, Qt, QCoreApplication
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QCoreApplication
 from PyQt5.QtWidgets import QMainWindow, QStackedWidget
 
 from Model.Enums import DisplayedWidget, GameMode, GameLevel
@@ -7,6 +7,7 @@ from OffGame.GameOverWidget import GameOverWidget
 from OffGame.InitWidget import InitWidget
 from OffGame.PlayerNamesWidget import PlayerNamesWidget
 from OffGame.AIChooseWidget import AIChooseWidget
+from OffGame.ScoreBoard import ScoreBoardWidget
 
 from Presenter.GameWindow import GameWindow
 
@@ -30,6 +31,7 @@ class MainWindow(QMainWindow):
 
         self.menu.PvAISignal.connect(self.goToPVEGame)
         self.menu.PvPSignal.connect(self.goToPVPGame)
+        self.menu.showHSTSignal.connect(self.goToScoreTable)
 
         self.stack = QStackedWidget(self)
         self.stack.addWidget(self.menu)
@@ -44,6 +46,7 @@ class MainWindow(QMainWindow):
         self.gameOverWidget = None
         self.playerNamesWidget = None
         self.AIChooseWidget = None
+        self.scoreBoardWidget = None
 
     def goToNames(self, mode=GameMode.PVE):
         self.playerNamesWidget = PlayerNamesWidget()
@@ -119,6 +122,14 @@ class MainWindow(QMainWindow):
         self.gameOverWidget.ui.menuButton.clicked.connect(self.goToMenu)
         self.stack.addWidget(self.gameOverWidget)
         self.stack.setCurrentWidget(self.gameOverWidget)
+
+    @pyqtSlot()
+    def goToScoreTable(self):
+        self.stack.removeWidget(self.scoreBoardWidget)
+        self.scoreBoardWidget = ScoreBoardWidget()
+        self.scoreBoardWidget.onExit.connect(self.goToMenu)
+        self.stack.addWidget(self.scoreBoardWidget)
+        self.stack.setCurrentWidget(self.scoreBoardWidget)
 
     def display(self):
         self.stack.setCurrentIndex(self.currentWidget)

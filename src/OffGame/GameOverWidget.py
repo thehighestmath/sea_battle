@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import QWidget
 
 # inner project imports
 import Environment
+from Model.Enums import GameMode
 from OffGame.ui_GameOverWidget import Ui_GameOverWidget
 
 
