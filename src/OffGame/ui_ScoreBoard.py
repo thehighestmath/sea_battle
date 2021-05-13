@@ -38,7 +38,10 @@ class Ui_Scoreboard(object):
 "#pvp_label, #pve_label{\n"
 "border: None;\n"
 "border-bottom: 1px solid gray;\n"
-"border-radius: 15px 15px 0 0;\n"
+"}\n"
+"\n"
+"QLabel{\n"
+"background: transparent;\n"
 "}\n"
 "\n"
 "")
