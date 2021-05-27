@@ -55,9 +55,9 @@ class ScoreBoard:
                 try:
                     sb = json.load(fp)
                 except JSONDecodeError:
-                    sb = {}
+                    sb = {"PVP": [], "PVE": []}
         except FileNotFoundError:
-            sb = {}
+            sb = {"PVP": [], "PVE": []}
 
         return sb
 

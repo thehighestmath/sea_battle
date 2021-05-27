@@ -38,7 +38,7 @@ class ShipListItem():
         self.count          = count
         self.counterItem    = QGraphicsPixmapItem()
         self.counterText    = QGraphicsTextItem()
-        self.counterText.setDefaultTextColor(QColor.fromRgb(0, 0, 0))
+        # self.counterText.setDefaultTextColor(QColor.fromRgb(0, 0, 0))
 
 
 class Ship():
