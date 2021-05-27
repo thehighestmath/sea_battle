@@ -4,10 +4,10 @@ import sys
 import random
 from enum import Enum
 
-from PyQt5.QtCore import Qt, QMargins, QEvent, QRectF, QRect, QPoint, QPointF, QTimer
+from PyQt5.QtCore import Qt, QMargins, QEvent, QRectF, QRect, QPoint, QPointF
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QFontDatabase
-from PyQt5.QtGui import QImage, QFont, QPixmap, QTransform, QPainter, QResizeEvent, QPen
+from PyQt5.QtGui import QImage, QFont, QPixmap, QTransform, QPainter, QResizeEvent, QPen, QColor
 # use PyQt5
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QGraphicsPixmapItem, QGraphicsTextItem, QGraphicsRectItem
@@ -38,6 +38,7 @@ class ShipListItem():
         self.count          = count
         self.counterItem    = QGraphicsPixmapItem()
         self.counterText    = QGraphicsTextItem()
+        self.counterText.setDefaultTextColor(QColor.fromRgb(0, 0, 0, 1))
 
 
 class Ship():
@@ -129,6 +130,9 @@ class GameArea(QWidget):
         self.__field       = [QGraphicsPixmapItem() for _ in range(100)]
         self.__letters     = [QGraphicsTextItem()   for _ in range(10) ]
         self.__numbers     = [QGraphicsTextItem()   for _ in range(10) ]
+        for i in range(10):
+            self.__letters[i].setDefaultTextColor(QColor.fromRgb(0, 0, 0, 1))
+            self.__numbers[i].setDefaultTextColor(QColor.fromRgb(0, 0, 0, 1))
 
         self.__spriteAnimations = []
 
