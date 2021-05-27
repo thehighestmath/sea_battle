@@ -9,8 +9,6 @@ DEBUG = False
 class Root:
     @staticmethod
     def path():
-        if hasattr(sys, "_MEIPASS"):
-            return os.path.dirname(__file__)
         return os.path.dirname(os.path.dirname(__file__))
 
 
@@ -55,9 +53,9 @@ class ScoreBoard:
                 try:
                     sb = json.load(fp)
                 except JSONDecodeError:
-                    sb = {'PVP': [], 'PVE': []}
+                    sb = {"PVP": [], "PVE": []}
         except FileNotFoundError:
-            sb = {'PVP': [], 'PVE': []}
+            sb = {"PVP": [], "PVE": []}
 
         return sb
 
