@@ -38,7 +38,7 @@ class ShipListItem():
         self.count          = count
         self.counterItem    = QGraphicsPixmapItem()
         self.counterText    = QGraphicsTextItem()
-        self.counterText.setDefaultTextColor(QColor.fromRgb(0, 0, 0, 1))
+        self.counterText.setDefaultTextColor(QColor.fromRgb(0, 0, 0))
 
 
 class Ship():
@@ -131,8 +131,8 @@ class GameArea(QWidget):
         self.__letters     = [QGraphicsTextItem()   for _ in range(10) ]
         self.__numbers     = [QGraphicsTextItem()   for _ in range(10) ]
         for i in range(10):
-            self.__letters[i].setDefaultTextColor(QColor.fromRgb(0, 0, 0, 1))
-            self.__numbers[i].setDefaultTextColor(QColor.fromRgb(0, 0, 0, 1))
+            self.__letters[i].setDefaultTextColor(QColor.fromRgb(0, 0, 0))
+            self.__numbers[i].setDefaultTextColor(QColor.fromRgb(0, 0, 0))
 
         self.__spriteAnimations = []
 
