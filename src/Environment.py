@@ -9,6 +9,8 @@ DEBUG = False
 class Root:
     @staticmethod
     def path():
+        if hasattr(sys, "_MEIPASS"):
+            return os.path.dirname(__file__)
         return os.path.dirname(os.path.dirname(__file__))
 
 
